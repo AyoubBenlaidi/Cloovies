@@ -4,9 +4,9 @@ import { Poster } from "@/components/film/Poster";
 import { Card, Eyebrow } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import {
-  CURRENT_USER_ID,
   getActiveCommunity,
   getCurrentMoovie,
+  getCurrentUserId,
   getFilms,
   getMembers,
   getMyRole,
@@ -16,6 +16,7 @@ import { formatMeeting, formatDay } from "@/lib/utils/format";
 export default async function AccueilPage() {
   const community = await getActiveCommunity();
   const moovie = await getCurrentMoovie(community.id);
+  const userId = await getCurrentUserId();
 
   if (!moovie) {
     return (
@@ -26,9 +27,9 @@ export default async function AccueilPage() {
   }
 
   const [films, members, role] = await Promise.all([
-    getFilms(moovie.id),
+    getFilms(moovie.id, userId),
     getMembers(community.id),
-    getMyRole(community.id, CURRENT_USER_ID),
+    getMyRole(community.id, userId),
   ]);
   const leader = films[0];
   const totalVotes = films.reduce((s, f) => s + f.voteCount, 0);

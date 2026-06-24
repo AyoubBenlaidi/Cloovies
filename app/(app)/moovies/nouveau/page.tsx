@@ -4,15 +4,15 @@ import { Eyebrow } from "@/components/ui/Card";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { BackIcon } from "@/components/nav/icons";
 import {
-  CURRENT_USER_ID,
   getActiveCommunity,
+  getCurrentUserId,
   getMyRole,
 } from "@/lib/data";
 import { createMoovieAction } from "../actions";
 
 export default async function NouveauMooviePage() {
   const community = await getActiveCommunity();
-  const role = await getMyRole(community.id, CURRENT_USER_ID);
+  const role = await getMyRole(community.id, await getCurrentUserId());
   if (role !== "admin") {
     return (
       <div className="mt-24 text-center text-ink-muted">

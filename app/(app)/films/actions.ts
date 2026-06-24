@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
-  CURRENT_USER_ID,
   addFilm,
   getActiveCommunity,
+  getCurrentUserId,
   getMyRole,
   setRating,
   toggleVote,
@@ -15,7 +15,7 @@ import { getFilmData, searchMovies, type TmdbResult } from "@/lib/tmdb";
 /** Garde-fou : les actions admin échouent si l'appelant n'est pas admin. */
 async function assertAdmin() {
   const community = await getActiveCommunity();
-  const role = await getMyRole(community.id, CURRENT_USER_ID);
+  const role = await getMyRole(community.id, await getCurrentUserId());
   if (role !== "admin") throw new Error("Action réservée aux administrateurs.");
 }
 
@@ -23,7 +23,7 @@ export async function toggleVoteAction(
   moovieId: string,
   filmId: string
 ): Promise<{ ok: boolean; voted: boolean; reason?: string }> {
-  const res = await toggleVote(moovieId, filmId, CURRENT_USER_ID);
+  const res = await toggleVote(moovieId, filmId, await getCurrentUserId());
   revalidatePath("/films");
   revalidatePath("/accueil");
   return res;
@@ -34,7 +34,12 @@ export async function rateFilmAction(
   filmId: string,
   score: number
 ) {
-  await setRating({ moovieId, filmId, userId: CURRENT_USER_ID, score });
+  await setRating({
+    moovieId,
+    filmId,
+    userId: await getCurrentUserId(),
+    score,
+  });
   revalidatePath(`/films/${filmId}`);
   revalidatePath("/reunion");
 }

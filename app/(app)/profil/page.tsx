@@ -4,19 +4,21 @@ import { Button } from "@/components/ui/Button";
 import { Card, Eyebrow } from "@/components/ui/Card";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import {
-  CURRENT_USER_ID,
   getActiveCommunity,
   getCurrentUser,
+  getCurrentUserId,
   getMembers,
   getPersonalStats,
 } from "@/lib/data";
 import { updateProfileAction } from "./actions";
+import { signOutAction } from "@/app/(auth)/actions";
 
 export default async function ProfilPage() {
+  const userId = await getCurrentUserId();
   const [me, community, stats] = await Promise.all([
     getCurrentUser(),
     getActiveCommunity(),
-    getPersonalStats(CURRENT_USER_ID),
+    getPersonalStats(userId),
   ]);
   const members = await getMembers(community.id);
 
@@ -116,6 +118,16 @@ export default async function ProfilPage() {
           </Button>
         </form>
       </section>
+
+      {/* Déconnexion */}
+      <form action={signOutAction} className="pt-2">
+        <button
+          type="submit"
+          className="w-full rounded-full border border-border py-3 text-sm text-ink-muted transition-colors hover:border-emo-malaise/40 hover:text-emo-malaise"
+        >
+          Se déconnecter
+        </button>
+      </form>
     </div>
   );
 }

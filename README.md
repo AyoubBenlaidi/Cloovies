@@ -40,34 +40,50 @@ Ouvrir http://localhost:3000 — l'app tourne en **mode démo** (données en mé
 Aucun composant n'accède directement à Supabase : **tout passe par `lib/data`**.
 
 ```
-lib/data/index.ts     ← point d'entrée unique (sélectionne la source)
-lib/data/mock/        ← adaptateur démo (en mémoire) — actif par défaut
-lib/data/supabase/    ← adaptateur Supabase (modèle à compléter)
+lib/data/index.ts     ← point d'entrée unique (sélecteur runtime)
+lib/data/mock/        ← adaptateur démo (en mémoire)
+lib/data/supabase/    ← adaptateur Supabase (complet)
 lib/data/types.ts     ← types métier partagés
 ```
 
-Basculer vers Supabase = compléter `lib/data/supabase` puis remplacer, dans `lib/data/index.ts` :
-
-```ts
-export * from "./mock";      // →  export * from "./supabase";
-```
+**La bascule est automatique** : si `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+sont définies, l'app utilise Supabase ; sinon, le mock (mode démo). Aucun changement de code.
+L'utilisateur courant vient de la session (`auth.uid`) en mode Supabase, d'un id fixe en mode démo.
 
 ---
 
 ## Activer Supabase
 
 1. Créer un projet sur [supabase.com](https://supabase.com).
-2. Dans le **SQL Editor**, exécuter [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) (tables + RLS + trigger de création de profil).
-3. Créer deux buckets **Storage** : `avatars` et `posters`.
-4. Copier `.env.example` → `.env.local` et renseigner :
+2. **SQL Editor** → exécuter [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)
+   (tables + RLS + trigger de profil + RPC `create_community` / `join_community`).
+3. **Storage** → créer deux buckets publics : `avatars` et `posters`.
+4. **Authentication → Providers → Email** : pour un flux d'inscription immédiat
+   (sans email de confirmation), désactiver *Confirm email*. Sinon l'utilisateur
+   devra confirmer son adresse avant de se connecter.
+5. Copier `.env.example` → `.env.local` (en local) **et** renseigner ces variables dans Vercel :
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
+TMDB_API_KEY=...            # optionnel : import films
 ```
 
-Les clients sont prêts : `lib/supabase/client.ts` (navigateur) et `lib/supabase/server.ts` (serveur).
+6. Redémarrer (`npm run dev`) / redéployer. L'app bascule alors sur Supabase.
+
+### Premier lancement (Supabase)
+- **S'inscrire** sur `/signup` → un profil est créé automatiquement.
+- L'app redirige vers **`/start`** : créer une communauté (vous en devenez **admin**)
+  ou en rejoindre une via un code.
+- En tant qu'admin : lancer un Moovie, ajouter des films (import TMDB), ouvrir le vote, etc.
+
+> **Note** — La révélation des émotions (mode réunion) n'expose les émotions des
+> autres que lorsque le Moovie est en statut `meeting` (règle RLS, cf. US18/19).
+> En mode démo, la révélation est toujours visible pour la démonstration.
+
+Clients Supabase : [`lib/supabase/client.ts`](lib/supabase/client.ts) (navigateur),
+[`lib/supabase/server.ts`](lib/supabase/server.ts) (serveur), session rafraîchie par [`proxy.ts`](proxy.ts).
 
 ---
 
@@ -98,7 +114,9 @@ Les clients sont prêts : `lib/supabase/client.ts` (navigateur) et `lib/supabase
 | US22 Mode réunion | `/reunion/live` |
 | US24–27 Créneaux de réunion | `/reunion` |
 
-**V2** : import TMDB (US9), notifications, export calendrier.
+| US9 Import TMDB | `/films/nouveau` (si `TMDB_API_KEY` défini) |
+
+**Reste en V2** : notifications push, export calendrier (.ics), upload d'affiches vers Storage.
 
 ---
 

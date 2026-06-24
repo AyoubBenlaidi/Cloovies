@@ -174,6 +174,38 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
 
+-- Création d'une communauté : l'auteur en devient AUTOMATIQUEMENT admin.
+-- security definer → contourne la RLS pour insérer la communauté + l'adhésion.
+create or replace function create_community(p_name text, p_code text)
+returns communities language plpgsql security definer as $$
+declare c communities;
+begin
+  if auth.uid() is null then raise exception 'not authenticated'; end if;
+  insert into communities (name, invite_code, created_by)
+  values (p_name, upper(p_code), auth.uid())
+  returning * into c;
+  insert into community_members (community_id, user_id, role)
+  values (c.id, auth.uid(), 'admin');
+  return c;
+end;
+$$;
+
+-- Rejoindre par code : adhésion en tant que 'member' uniquement (jamais admin).
+-- security definer → permet de retrouver la communauté sans en être déjà membre.
+create or replace function join_community(p_code text)
+returns communities language plpgsql security definer as $$
+declare c communities;
+begin
+  if auth.uid() is null then raise exception 'not authenticated'; end if;
+  select * into c from communities where invite_code = upper(p_code);
+  if not found then return null; end if;
+  insert into community_members (community_id, user_id, role)
+  values (c.id, auth.uid(), 'member')
+  on conflict (community_id, user_id) do nothing;
+  return c;
+end;
+$$;
+
 -- ============================================================
 -- Row Level Security
 -- ============================================================
@@ -193,12 +225,12 @@ alter table slot_votes        enable row level security;
 create policy "profiles readable" on profiles for select to authenticated using (true);
 create policy "profiles self update" on profiles for update to authenticated using (id = auth.uid());
 
--- Communautés : visibles par leurs membres ; création libre (l'auteur devient admin via app).
+-- Communautés : visibles par leurs membres. Création/adhésion UNIQUEMENT via
+-- les RPC create_community / join_community (security definer) — aucun insert
+-- direct par le client (empêche notamment l'auto-promotion en admin).
 create policy "communities member read" on communities for select to authenticated using (is_member(id));
-create policy "communities insert" on communities for insert to authenticated with check (created_by = auth.uid());
 
 create policy "members read" on community_members for select to authenticated using (is_member(community_id));
-create policy "members self join" on community_members for insert to authenticated with check (user_id = auth.uid());
 
 -- Moovies : membres lisent ; admins écrivent.
 create policy "moovies read" on moovies for select to authenticated using (is_member(community_id));

@@ -3,7 +3,12 @@ import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
 import { signUpAction } from "@/app/(auth)/actions";
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   return (
     <div className="animate-fade-up">
       <h1 className="font-display text-3xl tracking-tight">
@@ -12,6 +17,12 @@ export default function SignupPage() {
       <p className="mt-2 text-sm text-ink-muted">
         Quelques mots sur vous, et la séance peut commencer.
       </p>
+
+      {error ? (
+        <p className="mt-4 rounded-xl border border-emo-malaise/30 bg-emo-malaise/5 px-4 py-3 text-sm text-emo-malaise">
+          {error}
+        </p>
+      ) : null}
 
       <form action={signUpAction} className="mt-8 space-y-4">
         <Field label="Pseudo">

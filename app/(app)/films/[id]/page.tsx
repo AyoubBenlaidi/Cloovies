@@ -5,9 +5,9 @@ import { RatingStars } from "@/components/film/RatingStars";
 import { Card, Eyebrow, Tag } from "@/components/ui/Card";
 import { BackIcon, PlayIcon } from "@/components/nav/icons";
 import {
-  CURRENT_USER_ID,
   getActiveCommunity,
   getCurrentMoovie,
+  getCurrentUserId,
   getFilm,
   getFilmRating,
   getMyRating,
@@ -19,14 +19,15 @@ export default async function FilmDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const film = await getFilm(id);
+  const userId = await getCurrentUserId();
+  const film = await getFilm(id, userId);
   if (!film) notFound();
 
   const community = await getActiveCommunity();
   const moovie = await getCurrentMoovie(community.id);
   const [rating, myRating] = await Promise.all([
     getFilmRating(film.id),
-    getMyRating(film.id, CURRENT_USER_ID),
+    getMyRating(film.id, userId),
   ]);
 
   return (

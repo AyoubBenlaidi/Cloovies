@@ -3,13 +3,29 @@ import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
 import { signInAction } from "@/app/(auth)/actions";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; check_email?: string }>;
+}) {
+  const { error, check_email } = await searchParams;
   return (
     <div className="animate-fade-up">
       <h1 className="font-display text-3xl tracking-tight">Bon retour.</h1>
       <p className="mt-2 text-sm text-ink-muted">
         Le club a continué de tourner sans vous. Reprenez votre place.
       </p>
+
+      {check_email ? (
+        <p className="mt-4 rounded-xl border border-gold/30 bg-gold/5 px-4 py-3 text-sm text-gold">
+          Compte créé. Vérifiez votre boîte mail pour confirmer, puis connectez-vous.
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-4 rounded-xl border border-emo-malaise/30 bg-emo-malaise/5 px-4 py-3 text-sm text-emo-malaise">
+          {error}
+        </p>
+      ) : null}
 
       <form action={signInAction} className="mt-8 space-y-4">
         <Field label="Email">

@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { CURRENT_USER_ID, addSlot, validateSlot, voteSlot } from "@/lib/data";
+import { addSlot, getCurrentUserId, validateSlot, voteSlot } from "@/lib/data";
 import type { Availability } from "@/lib/data/types";
 
 export async function voteSlotAction(slotId: string, availability: Availability) {
-  await voteSlot(slotId, CURRENT_USER_ID, availability);
+  await voteSlot(slotId, await getCurrentUserId(), availability);
   revalidatePath("/reunion");
 }
 

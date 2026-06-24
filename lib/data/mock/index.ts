@@ -40,6 +40,10 @@ const profileOf = (id: string) => db.profiles.find((p) => p.id === id)!;
 export const CURRENT_USER_ID = seed.ME;
 
 /* -------- Profil / session -------- */
+export async function getCurrentUserId(): Promise<string> {
+  return CURRENT_USER_ID;
+}
+
 export async function getCurrentUser(): Promise<Profile> {
   return profileOf(CURRENT_USER_ID);
 }
@@ -78,6 +82,27 @@ export async function joinByCode(code: string): Promise<Community | null> {
   return code.trim().toUpperCase() === db.community.inviteCode
     ? db.community
     : null;
+}
+
+export async function createCommunity(
+  name: string,
+  inviteCode: string
+): Promise<Community> {
+  // Mode démo : on conserve une communauté unique mais on couvre l'API.
+  db.community = {
+    ...db.community,
+    name,
+    inviteCode: inviteCode.trim().toUpperCase(),
+    createdBy: CURRENT_USER_ID,
+  };
+  if (!db.members.some((m) => m.userId === CURRENT_USER_ID)) {
+    db.members.push({
+      communityId: db.community.id,
+      userId: CURRENT_USER_ID,
+      role: "admin",
+    });
+  }
+  return db.community;
 }
 
 /* -------- Moovies -------- */

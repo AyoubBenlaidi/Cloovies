@@ -3,9 +3,9 @@ import { VoteGrid } from "@/components/vote/VoteGrid";
 import { Eyebrow } from "@/components/ui/Card";
 import { PlusIcon } from "@/components/nav/icons";
 import {
-  CURRENT_USER_ID,
   getActiveCommunity,
   getCurrentMoovie,
+  getCurrentUserId,
   getFilms,
   getMyRole,
 } from "@/lib/data";
@@ -17,9 +17,10 @@ export default async function FilmsPage() {
     return <div className="mt-24 text-center text-ink-muted">Aucun cycle en cours.</div>;
   }
 
+  const userId = await getCurrentUserId();
   const [films, role] = await Promise.all([
-    getFilms(moovie.id),
-    getMyRole(community.id, CURRENT_USER_ID),
+    getFilms(moovie.id, userId),
+    getMyRole(community.id, userId),
   ]);
   const votingOpen = moovie.status === "voting";
 

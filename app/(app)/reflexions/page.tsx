@@ -1,8 +1,8 @@
 import { ReflexionsClient } from "@/components/reflexion/ReflexionsClient";
 import {
-  CURRENT_USER_ID,
   getActiveCommunity,
   getCurrentMoovie,
+  getCurrentUserId,
   getJournal,
   getMyEmotions,
   getRevealedEmotions,
@@ -16,15 +16,16 @@ export default async function ReflexionsPage() {
     return <div className="mt-24 text-center text-ink-muted">Aucun cycle en cours.</div>;
   }
 
+  const userId = await getCurrentUserId();
   const [films, entries, myEmotions, allEmotions] = await Promise.all([
-    getSelectedFilms(moovie.id),
-    getJournal(moovie.id, CURRENT_USER_ID),
-    getMyEmotions(moovie.id, CURRENT_USER_ID),
+    getSelectedFilms(moovie.id, userId),
+    getJournal(moovie.id, userId),
+    getMyEmotions(moovie.id, userId),
     getRevealedEmotions(moovie.id),
   ]);
 
   const othersCount = new Set(
-    allEmotions.filter((e) => e.userId !== CURRENT_USER_ID).map((e) => e.userId)
+    allEmotions.filter((e) => e.userId !== userId).map((e) => e.userId)
   ).size;
 
   return (

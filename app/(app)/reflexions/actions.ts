@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import {
-  CURRENT_USER_ID,
   addJournalEntry,
   deleteJournalEntry,
+  getCurrentUserId,
   setEmotion,
 } from "@/lib/data";
 import type { EmotionKind, JournalKind } from "@/lib/data/types";
@@ -15,7 +15,7 @@ export async function addNoteAction(input: {
   kind: JournalKind;
   content: string;
 }) {
-  await addJournalEntry({ ...input, userId: CURRENT_USER_ID });
+  await addJournalEntry({ ...input, userId: await getCurrentUserId() });
   revalidatePath("/reflexions");
 }
 
@@ -30,7 +30,7 @@ export async function setEmotionAction(input: {
   kind: EmotionKind;
   justification: string;
 }) {
-  await setEmotion({ ...input, userId: CURRENT_USER_ID });
+  await setEmotion({ ...input, userId: await getCurrentUserId() });
   revalidatePath("/reflexions");
   revalidatePath("/reunion");
 }

@@ -5,9 +5,9 @@ import { Eyebrow } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Field";
 import { MeetingIcon } from "@/components/nav/icons";
 import {
-  CURRENT_USER_ID,
   getActiveCommunity,
   getCurrentMoovie,
+  getCurrentUserId,
   getMyRole,
   getSlots,
 } from "@/lib/data";
@@ -21,9 +21,10 @@ export default async function ReunionPage() {
     return <div className="mt-24 text-center text-ink-muted">Aucun cycle en cours.</div>;
   }
 
+  const userId = await getCurrentUserId();
   const [slots, role] = await Promise.all([
-    getSlots(moovie.id, CURRENT_USER_ID, community.id),
-    getMyRole(community.id, CURRENT_USER_ID),
+    getSlots(moovie.id, userId, community.id),
+    getMyRole(community.id, userId),
   ]);
   const isAdmin = role === "admin";
 
