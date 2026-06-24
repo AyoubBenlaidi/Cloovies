@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/* ============================================================
+   CLOOVIES — Design tokens
+   Minimalisme premium. Noir profond. Le contenu respire.
+   ============================================================ */
+@theme {
+  /* Surfaces */
+  --color-bg: #0a0a0a;
+  --color-surface: #141414;
+  --color-elevated: #1d1d1d;
+  --color-card: #181818;
+  --color-border: #2a2a2a;
+
+  /* Texte */
+  --color-ink: #f4f1ea;
+  --color-ink-muted: #9a958c;
+  --color-ink-faint: #5e5b55;
+
+  /* Signature — Burnt Gold (≤ 10% de l'écran) */
+  --color-gold: #c89b3c;
+  --color-gold-soft: #d8b463;
+  --color-gold-dim: #7a5f24;
+
+  /* Émotions (uniquement à la révélation) */
+  --color-emo-joie: #f5c451;
+  --color-emo-nostalgie: #c59eff;
+  --color-emo-malaise: #d86b6b;
+  --color-emo-fascination: #66c6ff;
+  --color-emo-tristesse: #7993d6;
+  --color-emo-espoir: #75c98a;
+  --color-emo-colere: #d86b6b;
+
+  /* Typographie */
+  --font-display: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+
+  /* Rayons */
+  --radius-card: 16px;
+  --radius-lg: 20px;
+
+  /* Animations — 150 / 250 / 400ms, ease-out toujours */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  background-color: var(--color-bg);
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Halo cinéma très subtil en haut d'écran */
+  background-image: radial-gradient(
+    120% 60% at 50% -10%,
+    rgba(200, 155, 60, 0.06) 0%,
+    transparent 60%
+  );
+  background-attachment: fixed;
+}
+
+/* Titres en Playfair */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Scrollbar discrète */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 99px;
+}
+
+/* ---- Animations réutilisables ---- */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.4s var(--ease) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.4s var(--ease) both;
+}
+
+/* Apparition "cérémonie" — léger blur puis mise au point */
+@keyframes reveal-poster {
+  0% {
+    opacity: 0;
+    filter: blur(12px);
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+.animate-reveal {
+  animation: reveal-poster 0.6s var(--ease) both;
+}
+
+/* Retournement de carte émotion */
+.flip-card {
+  perspective: 1200px;
+}
+.flip-inner {
+  transform-style: preserve-3d;
+  transition: transform 0.6s var(--ease);
+}
+.flip-card.is-open .flip-inner {
+  transform: rotateY(180deg);
+}
+.flip-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
