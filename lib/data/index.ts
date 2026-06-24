@@ -12,10 +12,9 @@
 
 import * as mock from "./mock";
 import * as supabase from "./supabase";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
-export const isSupabaseConfigured =
-  !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export { isSupabaseConfigured };
 
 // L'adaptateur Supabase implémente la même surface que le mock.
 const impl: typeof mock = isSupabaseConfigured

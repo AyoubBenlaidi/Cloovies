@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./env";
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
@@ -18,11 +19,9 @@ const PROTECTED = [
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) return response; // mode démo : aucune auth
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return response; // mode démo : aucune auth
 
-  const supabase = createServerClient(url, anon, {
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
