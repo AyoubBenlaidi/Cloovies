@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils/cn";
 import { rateFilmAction } from "@/app/(app)/films/actions";
 
-/** Notation sur 10 (US20). */
+/** Notation sur 10. */
 export function RatingStars({
   moovieId,
   filmId,

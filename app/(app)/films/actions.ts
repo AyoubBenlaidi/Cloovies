@@ -44,7 +44,7 @@ export async function rateFilmAction(
   revalidatePath("/reunion");
 }
 
-/** Recherche TMDB (US9). Renvoie un résultat structuré pour gérer l'UI. */
+/** Recherche TMDB. Renvoie un résultat structuré pour gérer l'UI. */
 export async function searchTmdbAction(
   query: string
 ): Promise<{ ok: boolean; results: TmdbResult[]; error?: string }> {
@@ -61,7 +61,7 @@ export async function searchTmdbAction(
   }
 }
 
-/** Ajoute un film à partir d'un résultat TMDB (US9) — récupère la fiche complète. */
+/** Ajoute un film à partir d'un résultat TMDB — récupère la fiche complète. */
 export async function addFilmFromTmdbAction(moovieId: string, tmdbId: number) {
   await assertAdmin();
   const data = await getFilmData(tmdbId);

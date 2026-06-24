@@ -76,7 +76,7 @@ export default async function ReunionPage() {
       {/* Admin : proposer un créneau */}
       {isAdmin ? (
         <section className="rounded-[var(--radius-card)] border border-dashed border-border p-5">
-          <Eyebrow>Proposer un créneau (US24)</Eyebrow>
+          <Eyebrow>Proposer un créneau</Eyebrow>
           <form action={addSlotAction} className="mt-3 space-y-3">
             <input type="hidden" name="moovieId" value={moovie.id} />
             <div className="grid grid-cols-2 gap-3">

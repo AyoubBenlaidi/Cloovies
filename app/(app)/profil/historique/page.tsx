@@ -29,7 +29,7 @@ export default async function HistoriquePage() {
         </h1>
       </header>
 
-      {/* Bibliothèque du club (US24) */}
+      {/* Bibliothèque du club */}
       <section>
         <Eyebrow>Bibliothèque · {library.length} films vus</Eyebrow>
         <div className="mt-3 grid grid-cols-3 gap-3">
@@ -48,7 +48,7 @@ export default async function HistoriquePage() {
         </div>
       </section>
 
-      {/* Moovies passés (US7) */}
+      {/* Moovies passés */}
       <section>
         <Eyebrow>Cycles passés</Eyebrow>
         <ul className="mt-3 space-y-3">

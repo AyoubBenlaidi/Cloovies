@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils/cn";
 import { Avatar } from "@/components/ui/Avatar";
 import { EMOTION_META, type EmotionRevealed } from "@/lib/data/types";
 
-/** US19 — révélation collective. Les cartes se retournent une à une. */
+/** Révélation collective : les cartes se retournent une à une. */
 export function EmotionReveal({ emotions }: { emotions: EmotionRevealed[] }) {
   const [revealedCount, setRevealedCount] = useState(0);
 

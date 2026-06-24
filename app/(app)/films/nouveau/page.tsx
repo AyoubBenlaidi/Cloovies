@@ -34,7 +34,7 @@ export default async function NouveauFilmPage() {
         </p>
       </header>
 
-      {/* Import automatique TMDB (US9) */}
+      {/* Import automatique TMDB */}
       {tmdbEnabled ? (
         <section>
           <Eyebrow>Import automatique · TMDB</Eyebrow>

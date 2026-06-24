@@ -323,7 +323,7 @@ function EmotionPicker({
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Pourquoi cette émotion ? (US17 — justification libre)"
+        placeholder="Pourquoi cette émotion ? Mettez des mots dessus, librement…"
       />
       <Button
         size="lg"

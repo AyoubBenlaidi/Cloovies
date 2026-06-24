@@ -138,7 +138,7 @@ export function SlotList({
                 }
                 className="mt-3 w-full rounded-xl border border-border py-2 text-sm text-ink-muted transition-colors hover:border-gold/40 hover:text-gold"
               >
-                Valider ce créneau (US27)
+                Valider ce créneau
               </button>
             ) : null}
           </div>

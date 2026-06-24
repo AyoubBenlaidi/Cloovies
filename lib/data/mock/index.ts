@@ -295,7 +295,7 @@ export async function setEmotion(input: {
   return emotion;
 }
 
-/** US19 — révélation collective (le jour de la réunion). */
+/** Révélation collective (le jour de la réunion). */
 export async function getRevealedEmotions(
   moovieId: string
 ): Promise<EmotionRevealed[]> {
@@ -391,7 +391,7 @@ export async function addSlot(input: {
   return slot;
 }
 
-/** US27 — valider le créneau retenu : devient la date officielle du Moovie. */
+/** Valider le créneau retenu : devient la date officielle du Moovie. */
 export async function validateSlot(
   slotId: string,
   moovieId: string

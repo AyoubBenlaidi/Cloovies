@@ -95,7 +95,7 @@ export default async function FilmDetailPage({
         </div>
       </Card>
 
-      {/* Notation (US20 / US21) */}
+      {/* Notation */}
       <Card>
         <div className="mb-3 flex items-center justify-between">
           <Eyebrow>Votre note</Eyebrow>

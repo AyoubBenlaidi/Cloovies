@@ -30,7 +30,7 @@ export default async function ProfilPage() {
         <p className="text-sm text-ink-faint">{community.name}</p>
       </header>
 
-      {/* Stats personnelles (US25) */}
+      {/* Stats personnelles */}
       <section>
         <Eyebrow>Mon parcours</Eyebrow>
         <div className="mt-3 grid grid-cols-2 gap-3">
@@ -94,7 +94,7 @@ export default async function ProfilPage() {
         </p>
       </Card>
 
-      {/* Édition du profil (US3) */}
+      {/* Édition du profil */}
       <section>
         <Eyebrow>Modifier mon profil</Eyebrow>
         <form action={updateProfileAction} className="mt-3 space-y-4">
