@@ -9,6 +9,11 @@ function generateCode(): string {
 
 export async function createCommunityAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim() || "Mon club";
-  await createCommunity(name, generateCode());
+  try {
+    await createCommunity(name, generateCode());
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Erreur inconnue";
+    redirect(`/start?error=${encodeURIComponent(msg)}`);
+  }
   redirect("/accueil");
 }

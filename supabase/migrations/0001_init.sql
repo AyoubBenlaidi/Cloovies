@@ -177,7 +177,7 @@ create trigger on_auth_user_created
 -- Création d'une communauté : l'auteur en devient AUTOMATIQUEMENT admin.
 -- security definer → contourne la RLS pour insérer la communauté + l'adhésion.
 create or replace function create_community(p_name text, p_code text)
-returns communities language plpgsql security definer as $$
+returns communities language plpgsql security definer set search_path = public as $$
 declare c communities;
 begin
   if auth.uid() is null then raise exception 'not authenticated'; end if;
@@ -193,7 +193,7 @@ $$;
 -- Rejoindre par code : adhésion en tant que 'member' uniquement (jamais admin).
 -- security definer → permet de retrouver la communauté sans en être déjà membre.
 create or replace function join_community(p_code text)
-returns communities language plpgsql security definer as $$
+returns communities language plpgsql security definer set search_path = public as $$
 declare c communities;
 begin
   if auth.uid() is null then raise exception 'not authenticated'; end if;

@@ -4,7 +4,12 @@ import { Eyebrow } from "@/components/ui/Card";
 import { createCommunityAction } from "./actions";
 import { joinAction } from "@/app/join/actions";
 
-export default function StartPage() {
+export default async function StartPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col justify-center px-7 py-10">
       <div className="animate-fade-up">
@@ -17,6 +22,12 @@ export default function StartPage() {
           rejoignez-en un avec un code d'invitation.
         </p>
       </div>
+
+      {error ? (
+        <p className="mt-5 rounded-xl border border-emo-malaise/30 bg-emo-malaise/5 px-4 py-3 text-sm text-emo-malaise">
+          {error}
+        </p>
+      ) : null}
 
       {/* Créer */}
       <form
