@@ -21,6 +21,22 @@ function hash(str: string): number {
   return Math.abs(h);
 }
 
+// Hôtes pour lesquels on laisse l'optimiseur next/image agir (déclarés dans
+// next.config). Pour toute autre URL (affiche collée par un admin), on contourne
+// l'optimiseur (`unoptimized`) : aucune config d'hôte requise, jamais de crash.
+function isOptimizableHost(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return (
+      hostname === "image.tmdb.org" ||
+      hostname === "images.unsplash.com" ||
+      hostname.endsWith(".supabase.co")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function Poster({
   title,
   year,
@@ -51,6 +67,7 @@ export function Poster({
           sizes={sizes ?? "(max-width: 480px) 50vw, 240px"}
           className="object-cover"
           priority={priority}
+          unoptimized={!isOptimizableHost(posterUrl)}
         />
       </div>
     );

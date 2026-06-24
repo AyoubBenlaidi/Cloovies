@@ -5,9 +5,19 @@ import { redirect } from "next/navigation";
 import {
   CURRENT_USER_ID,
   addFilm,
+  getActiveCommunity,
+  getMyRole,
   setRating,
   toggleVote,
 } from "@/lib/data";
+import { getFilmData, searchMovies, type TmdbResult } from "@/lib/tmdb";
+
+/** Garde-fou : les actions admin échouent si l'appelant n'est pas admin. */
+async function assertAdmin() {
+  const community = await getActiveCommunity();
+  const role = await getMyRole(community.id, CURRENT_USER_ID);
+  if (role !== "admin") throw new Error("Action réservée aux administrateurs.");
+}
 
 export async function toggleVoteAction(
   moovieId: string,
@@ -29,7 +39,34 @@ export async function rateFilmAction(
   revalidatePath("/reunion");
 }
 
+/** Recherche TMDB (US9). Renvoie un résultat structuré pour gérer l'UI. */
+export async function searchTmdbAction(
+  query: string
+): Promise<{ ok: boolean; results: TmdbResult[]; error?: string }> {
+  try {
+    const results = await searchMovies(query);
+    return { ok: true, results };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "";
+    if (msg === "TMDB_NOT_CONFIGURED")
+      return { ok: false, results: [], error: "Import TMDB non configuré." };
+    if (msg.includes("401"))
+      return { ok: false, results: [], error: "Clé TMDB invalide ou expirée." };
+    return { ok: false, results: [], error: "TMDB indisponible, réessayez." };
+  }
+}
+
+/** Ajoute un film à partir d'un résultat TMDB (US9) — récupère la fiche complète. */
+export async function addFilmFromTmdbAction(moovieId: string, tmdbId: number) {
+  await assertAdmin();
+  const data = await getFilmData(tmdbId);
+  await addFilm({ moovieId, ...data });
+  revalidatePath("/films");
+  redirect("/films");
+}
+
 export async function addFilmAction(formData: FormData) {
+  await assertAdmin();
   const moovieId = String(formData.get("moovieId"));
   await addFilm({
     moovieId,
