@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Countdown } from "@/components/Countdown";
 import { Poster } from "@/components/film/Poster";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card, Eyebrow } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import {
@@ -19,9 +20,33 @@ export default async function AccueilPage() {
   const userId = await getCurrentUserId();
 
   if (!moovie) {
+    const role = await getMyRole(community.id, userId);
     return (
-      <div className="mt-24 text-center text-ink-muted">
-        Aucun cycle en cours. Revenez bientôt.
+      <div className="mt-20 flex flex-col items-center text-center animate-fade-up">
+        <Eyebrow>{community.name}</Eyebrow>
+        <h1 className="mt-3 font-display text-[2rem] leading-tight tracking-tight">
+          Le club est prêt.
+        </h1>
+        <p className="mt-3 max-w-[18rem] text-sm leading-relaxed text-ink-muted">
+          {role === "admin"
+            ? "Lancez le premier Moovie : une thématique, une sélection de films, un vote."
+            : "Aucun cycle en cours. En attente du lancement par un administrateur."}
+        </p>
+
+        {role === "admin" ? (
+          <div className="mt-7 w-full max-w-[16rem]">
+            <ButtonLink href="/moovies/nouveau" size="lg">
+              Lancer le premier Moovie
+            </ButtonLink>
+          </div>
+        ) : null}
+
+        <div className="mt-8 rounded-[var(--radius-card)] border border-border bg-card px-6 py-4">
+          <Eyebrow>Inviter au club</Eyebrow>
+          <p className="mt-1 font-display text-xl tracking-[0.15em] text-gold">
+            {community.inviteCode}
+          </p>
+        </div>
       </div>
     );
   }
