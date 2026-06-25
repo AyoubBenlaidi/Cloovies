@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   title: "Cloovies — Le club",
   description:
     "Cloovies n'est pas une application de gestion de films. C'est un rituel social autour du cinéma.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export const viewport: Viewport = {
