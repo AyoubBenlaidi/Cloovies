@@ -10,6 +10,7 @@ import {
   setRating,
   toggleVote,
 } from "@/lib/data";
+import { evaluateBadges } from "@/lib/badges/evaluator";
 import { getFilmData, searchMovies, type TmdbResult } from "@/lib/tmdb";
 
 /** Garde-fou : les actions admin échouent si l'appelant n'est pas admin. */
@@ -23,7 +24,9 @@ export async function toggleVoteAction(
   moovieId: string,
   filmId: string
 ): Promise<{ ok: boolean; voted: boolean; reason?: string }> {
-  const res = await toggleVote(moovieId, filmId, await getCurrentUserId());
+  const userId = await getCurrentUserId();
+  const res = await toggleVote(moovieId, filmId, userId);
+  if (res.ok && res.voted) await evaluateBadges(userId);
   revalidatePath("/films");
   revalidatePath("/accueil");
   return res;
@@ -34,12 +37,14 @@ export async function rateFilmAction(
   filmId: string,
   score: number
 ) {
+  const userId = await getCurrentUserId();
   await setRating({
     moovieId,
     filmId,
-    userId: await getCurrentUserId(),
+    userId,
     score,
   });
+  await evaluateBadges(userId);
   revalidatePath(`/films/${filmId}`);
   revalidatePath("/reunion");
 }

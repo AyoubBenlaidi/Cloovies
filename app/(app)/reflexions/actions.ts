@@ -7,6 +7,7 @@ import {
   getCurrentUserId,
   setEmotion,
 } from "@/lib/data";
+import { evaluateBadges } from "@/lib/badges/evaluator";
 import type { EmotionKind, JournalKind } from "@/lib/data/types";
 
 export async function addNoteAction(input: {
@@ -15,7 +16,9 @@ export async function addNoteAction(input: {
   kind: JournalKind;
   content: string;
 }) {
-  await addJournalEntry({ ...input, userId: await getCurrentUserId() });
+  const userId = await getCurrentUserId();
+  await addJournalEntry({ ...input, userId });
+  await evaluateBadges(userId);
   revalidatePath("/reflexions");
 }
 
@@ -30,7 +33,9 @@ export async function setEmotionAction(input: {
   kind: EmotionKind;
   justification: string;
 }) {
-  await setEmotion({ ...input, userId: await getCurrentUserId() });
+  const userId = await getCurrentUserId();
+  await setEmotion({ ...input, userId });
+  await evaluateBadges(userId);
   revalidatePath("/reflexions");
   revalidatePath("/reunion");
 }

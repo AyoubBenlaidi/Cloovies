@@ -8,19 +8,29 @@ import {
   getCurrentUser,
   getCurrentUserId,
   getMembers,
+  getMyBadges,
   getPersonalStats,
 } from "@/lib/data";
+import { BADGES, BADGE_BY_KEY, RARITY_META } from "@/lib/badges/catalog";
 import { updateProfileAction } from "./actions";
 import { signOutAction } from "@/app/(auth)/actions";
 
 export default async function ProfilPage() {
   const userId = await getCurrentUserId();
-  const [me, community, stats] = await Promise.all([
+  const [me, community, stats, myBadges] = await Promise.all([
     getCurrentUser(),
     getActiveCommunity(),
     getPersonalStats(userId),
+    getMyBadges(userId),
   ]);
   const members = await getMembers(community.id);
+
+  // 3 derniers badges débloqués (par date desc) pour le teaser.
+  const recentBadges = [...myBadges]
+    .sort((a, b) => b.unlockedAt.localeCompare(a.unlockedAt))
+    .slice(0, 3)
+    .map((u) => BADGE_BY_KEY.get(u.key))
+    .filter((b): b is NonNullable<typeof b> => !!b);
 
   return (
     <div className="space-y-7">
@@ -69,6 +79,56 @@ export default async function ProfilPage() {
             </div>
           </Card>
         ) : null}
+      </section>
+
+      {/* Trophées */}
+      <section>
+        <div className="flex items-baseline justify-between">
+          <Eyebrow>Trophées</Eyebrow>
+          <Link href="/profil/badges" className="text-xs text-gold hover:underline">
+            Tout voir
+          </Link>
+        </div>
+        <Link
+          href="/profil/badges"
+          className="mt-3 block rounded-[var(--radius-card)] border border-border bg-card p-4 transition-colors hover:border-gold/40"
+        >
+          <div className="flex items-baseline justify-between">
+            <p className="font-display text-2xl text-ink">
+              {myBadges.length}
+              <span className="text-base text-ink-faint"> / {BADGES.length}</span>
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-ink-faint">
+              débloqués
+            </p>
+          </div>
+          {recentBadges.length ? (
+            <div className="mt-3 flex items-center gap-3">
+              {recentBadges.map((b) => {
+                const meta = RARITY_META[b.rarity];
+                return (
+                  <div
+                    key={b.key}
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-lg"
+                    style={{
+                      background: `radial-gradient(circle, ${meta.glow} 0%, transparent 70%)`,
+                    }}
+                    title={b.name}
+                  >
+                    {b.icon}
+                  </div>
+                );
+              })}
+              <span className="text-xs text-ink-faint">
+                Derniers gagnés
+              </span>
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-ink-faint">
+              Pas encore de trophée. Le générique attend.
+            </p>
+          )}
+        </Link>
       </section>
 
       {/* Liens */}

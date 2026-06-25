@@ -72,3 +72,9 @@ export const validateSlot = impl.validateSlot;
 // --- Historique / stats ---
 export const getClubLibrary = impl.getClubLibrary;
 export const getPersonalStats = impl.getPersonalStats;
+
+// --- Badges ---
+export const getBadgeSignals = impl.getBadgeSignals;
+export const getMyBadges = impl.getMyBadges;
+export const unlockBadges = impl.unlockBadges;
+export const getCommunityBadgeHolders = impl.getCommunityBadgeHolders;

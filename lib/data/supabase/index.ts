@@ -649,3 +649,89 @@ export async function getPersonalStats(userId: string): Promise<{
 
   return { filmsSeen: seen.size, averageScore: avg, topGenres: topG, topDirectors: topD };
 }
+
+/* ---------- Badges ---------- */
+export async function getBadgeSignals(userId: string) {
+  const sb = await createClient();
+  const { data, error } = await sb.rpc("badge_signals", { p_user: userId });
+  if (error || !data) {
+    // Fail-soft : on renvoie une coquille vide pour ne jamais casser le flux principal.
+    return {
+      communities: 0,
+      journalCount: 0,
+      journalMaxWords: 0,
+      ratingCount: 0,
+      ratingDistribution: {} as Record<string, number>,
+      tenCount: 0,
+      zeroCount: 0,
+      emotionTotal: 0,
+      emotionByKind: {} as Partial<Record<EmotionKind, number>>,
+      voteCount: 0,
+      winningVotes: 0,
+      soloVotes: 0,
+      filmsSeen: 0,
+      participations: 0,
+      missed: 0,
+      contrarian: 0,
+      lonelyHigh: 0,
+      lonelyLow: 0,
+      signupAt: null as string | null,
+    };
+  }
+  const d = data as Row;
+  return {
+    communities: d.communities ?? 0,
+    journalCount: d.journalCount ?? 0,
+    journalMaxWords: d.journalMaxWords ?? 0,
+    ratingCount: d.ratingCount ?? 0,
+    ratingDistribution: (d.ratingDistribution ?? {}) as Record<string, number>,
+    tenCount: d.tenCount ?? 0,
+    zeroCount: d.zeroCount ?? 0,
+    emotionTotal: d.emotionTotal ?? 0,
+    emotionByKind: (d.emotionByKind ?? {}) as Partial<Record<EmotionKind, number>>,
+    voteCount: d.voteCount ?? 0,
+    winningVotes: d.winningVotes ?? 0,
+    soloVotes: d.soloVotes ?? 0,
+    filmsSeen: d.filmsSeen ?? 0,
+    participations: d.participations ?? 0,
+    missed: d.missed ?? 0,
+    contrarian: d.contrarian ?? 0,
+    lonelyHigh: d.lonelyHigh ?? 0,
+    lonelyLow: d.lonelyLow ?? 0,
+    signupAt: (d.signupAt ?? null) as string | null,
+  };
+}
+
+export async function getMyBadges(
+  userId: string
+): Promise<Array<{ key: string; unlockedAt: string }>> {
+  const sb = await createClient();
+  const { data } = await sb
+    .from("user_badges")
+    .select("badge_key, unlocked_at")
+    .eq("user_id", userId);
+  return (data ?? []).map((r: Row) => ({ key: r.badge_key, unlockedAt: r.unlocked_at }));
+}
+
+export async function unlockBadges(userId: string, keys: string[]): Promise<void> {
+  if (!keys.length) return;
+  const sb = await createClient();
+  await sb
+    .from("user_badges")
+    .upsert(
+      keys.map((k) => ({ user_id: userId, badge_key: k })),
+      { onConflict: "user_id,badge_key", ignoreDuplicates: true }
+    );
+}
+
+export async function getCommunityBadgeHolders(
+  communityId: string
+): Promise<Array<{ badgeKey: string; holders: number; total: number }>> {
+  const sb = await createClient();
+  const { data } = await sb.rpc("community_badge_holders", { p_community: communityId });
+  return (data ?? []).map((r: Row) => ({
+    badgeKey: r.badge_key,
+    holders: r.holders,
+    total: r.total,
+  }));
+}

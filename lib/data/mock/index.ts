@@ -463,3 +463,169 @@ export async function getPersonalStats(userId: string): Promise<{
     topDirectors: top(dirCount, "director"),
   };
 }
+
+/* -------- Badges -------- */
+
+// Mémoire en mode démo : badges déjà débloqués (user_id -> Map<key, ISO date>)
+const unlockedByUser = new Map<string, Map<string, string>>();
+// Date d'inscription simulée (mode démo : "inscrit depuis longtemps")
+const SIGNUP_AT = new Date(Date.now() - 1000 * 60 * 60 * 24 * 240).toISOString();
+
+export async function getBadgeSignals(userId: string): Promise<{
+  communities: number;
+  journalCount: number;
+  journalMaxWords: number;
+  ratingCount: number;
+  ratingDistribution: Record<string, number>;
+  tenCount: number;
+  zeroCount: number;
+  emotionTotal: number;
+  emotionByKind: Partial<Record<EmotionKind, number>>;
+  voteCount: number;
+  winningVotes: number;
+  soloVotes: number;
+  filmsSeen: number;
+  participations: number;
+  missed: number;
+  contrarian: number;
+  lonelyHigh: number;
+  lonelyLow: number;
+  signupAt: string | null;
+}> {
+  const communities = db.members.filter((m) => m.userId === userId).length;
+
+  const myJournal = db.journal.filter((j) => j.userId === userId);
+  const journalMaxWords = myJournal.reduce(
+    (max, j) => Math.max(max, j.content.trim().split(/\s+/).filter(Boolean).length),
+    0
+  );
+
+  const myRatings = db.ratings.filter((r) => r.userId === userId);
+  const ratingDistribution: Record<string, number> = {};
+  for (const r of myRatings) {
+    ratingDistribution[String(r.score)] = (ratingDistribution[String(r.score)] ?? 0) + 1;
+  }
+
+  const myEmotions = db.emotions.filter((e) => e.userId === userId);
+  const emotionByKind: Partial<Record<EmotionKind, number>> = {};
+  for (const e of myEmotions) {
+    emotionByKind[e.kind] = (emotionByKind[e.kind] ?? 0) + 1;
+  }
+
+  const myVotes = db.votes.filter((v) => v.userId === userId);
+  const winningVotes = myVotes.filter((v) =>
+    db.films.find((f) => f.id === v.filmId)?.isSelected
+  ).length;
+
+  // soloVotes : films pour lesquels personne d'autre que moi n'a voté
+  const voteCountByFilm = new Map<string, Set<string>>();
+  for (const v of db.votes) {
+    if (!voteCountByFilm.has(v.filmId)) voteCountByFilm.set(v.filmId, new Set());
+    voteCountByFilm.get(v.filmId)!.add(v.userId);
+  }
+  const soloVotes = myVotes.filter((v) => {
+    const voters = voteCountByFilm.get(v.filmId)!;
+    return voters.size === 1 && voters.has(userId);
+  }).length;
+
+  const filmsSeen = new Set(myRatings.map((r) => r.filmId)).size;
+
+  const participations = new Set([
+    ...myVotes.map((v) => v.moovieId),
+    ...myRatings.map((r) => r.moovieId),
+    ...myEmotions.map((e) => e.moovieId),
+    ...myJournal.map((j) => j.moovieId),
+  ]).size;
+
+  // missed : films sélectionnés, moovie en meeting/archived, dans une communauté
+  // dont je suis membre, et non noté par moi.
+  const myCommunities = new Set(
+    db.members.filter((m) => m.userId === userId).map((m) => m.communityId)
+  );
+  const missed = db.films.filter((f) => {
+    if (!f.isSelected) return false;
+    const m = db.moovies.find((x) => x.id === f.moovieId);
+    if (!m || !myCommunities.has(m.communityId)) return false;
+    if (m.status !== "meeting" && m.status !== "archived") return false;
+    return !myRatings.some((r) => r.filmId === f.id);
+  }).length;
+
+  // Calculs comparatifs par film (moyennes, isolés).
+  const ratingsByFilm = new Map<string, number[]>();
+  for (const r of db.ratings) {
+    if (!ratingsByFilm.has(r.filmId)) ratingsByFilm.set(r.filmId, []);
+    ratingsByFilm.get(r.filmId)!.push(r.score);
+  }
+  let contrarian = 0;
+  let lonelyHigh = 0;
+  let lonelyLow = 0;
+  for (const r of myRatings) {
+    const scores = ratingsByFilm.get(r.filmId) ?? [];
+    if (scores.length >= 2) {
+      const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+      if (Math.abs(r.score - avg) > 3) contrarian += 1;
+      if (r.score >= 9 && scores.filter((s) => s >= 9).length === 1) lonelyHigh += 1;
+      if (r.score < 3 && scores.filter((s) => s < 3).length === 1) lonelyLow += 1;
+    }
+  }
+
+  return {
+    communities,
+    journalCount: myJournal.length,
+    journalMaxWords,
+    ratingCount: myRatings.length,
+    ratingDistribution,
+    tenCount: myRatings.filter((r) => r.score === 10).length,
+    zeroCount: myRatings.filter((r) => r.score <= 1).length,
+    emotionTotal: myEmotions.length,
+    emotionByKind,
+    voteCount: myVotes.length,
+    winningVotes,
+    soloVotes,
+    filmsSeen,
+    participations,
+    missed,
+    contrarian,
+    lonelyHigh,
+    lonelyLow,
+    signupAt: SIGNUP_AT,
+  };
+}
+
+export async function getMyBadges(
+  userId: string
+): Promise<Array<{ key: string; unlockedAt: string }>> {
+  const map = unlockedByUser.get(userId);
+  if (!map) return [];
+  return [...map.entries()].map(([key, unlockedAt]) => ({ key, unlockedAt }));
+}
+
+export async function unlockBadges(userId: string, keys: string[]): Promise<void> {
+  if (!unlockedByUser.has(userId)) unlockedByUser.set(userId, new Map());
+  const map = unlockedByUser.get(userId)!;
+  const now = new Date().toISOString();
+  for (const k of keys) if (!map.has(k)) map.set(k, now);
+}
+
+export async function getCommunityBadgeHolders(
+  communityId: string
+): Promise<Array<{ badgeKey: string; holders: number; total: number }>> {
+  const memberIds = db.members
+    .filter((m) => m.communityId === communityId)
+    .map((m) => m.userId);
+  const total = memberIds.length;
+  const counts = new Map<string, Set<string>>();
+  for (const uid of memberIds) {
+    const map = unlockedByUser.get(uid);
+    if (!map) continue;
+    for (const key of map.keys()) {
+      if (!counts.has(key)) counts.set(key, new Set());
+      counts.get(key)!.add(uid);
+    }
+  }
+  return [...counts.entries()].map(([badgeKey, set]) => ({
+    badgeKey,
+    holders: set.size,
+    total,
+  }));
+}
