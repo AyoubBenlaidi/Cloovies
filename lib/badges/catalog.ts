@@ -71,7 +71,7 @@ export const BADGES: BadgeDef[] = [
   {
     key: "premier_clap",
     name: "Premier Clap",
-    description: "Bienvenue sur Cloovies. Le générique commence.",
+    description: "Bienvenue au Club Cinoche. Le générique commence.",
     icon: "🎬",
     rarity: "common",
     category: "demarrage",
@@ -466,8 +466,8 @@ export const BADGES: BadgeDef[] = [
   },
   {
     key: "legende_cloovies",
-    name: "Légende du Cloovies Club",
-    description: "Tout. Vous avez tout débloqué. Inclinaison.",
+    name: "Légende du Club Cinoche",
+    description: "Tout. Vous avez tout débloqué. Révérence.",
     icon: "🏵️",
     rarity: "mythic",
     category: "mythiques",
@@ -483,11 +483,11 @@ export const RARITY_META: Record<
   Rarity,
   { label: string; color: string; glow: string; order: number }
 > = {
-  common: { label: "Common", color: "#9a958c", glow: "rgba(154,149,140,0.18)", order: 0 },
-  rare: { label: "Rare", color: "#66c6ff", glow: "rgba(102,198,255,0.22)", order: 1 },
-  epic: { label: "Epic", color: "#c59eff", glow: "rgba(197,158,255,0.22)", order: 2 },
-  legendary: { label: "Legendary", color: "#c89b3c", glow: "rgba(200,155,60,0.32)", order: 3 },
-  mythic: { label: "Mythic", color: "#d86b6b", glow: "rgba(216,107,107,0.32)", order: 4 },
+  common: { label: "Common", color: "#a4a09a", glow: "rgba(164,160,154,0.18)", order: 0 },
+  rare: { label: "Rare", color: "#0e82e9", glow: "rgba(14,130,233,0.30)", order: 1 },
+  epic: { label: "Epic", color: "#fdabe9", glow: "rgba(253,171,233,0.32)", order: 2 },
+  legendary: { label: "Legendary", color: "#fef102", glow: "rgba(254,241,2,0.34)", order: 3 },
+  mythic: { label: "Mythic", color: "#fe4237", glow: "rgba(254,66,55,0.34)", order: 4 },
 };
 
 export const CATEGORY_META: Record<BadgeCategory, { label: string; order: number }> = {

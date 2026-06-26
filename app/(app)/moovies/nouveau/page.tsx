@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
+import { ChevronLeft, ShieldAlert } from "lucide-react";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Eyebrow } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Field, Input, Textarea } from "@/components/ui/Field";
-import { BackIcon } from "@/components/nav/icons";
 import {
   getActiveCommunity,
   getCurrentUserId,
@@ -15,24 +16,30 @@ export default async function NouveauMooviePage() {
   const role = await getMyRole(community.id, await getCurrentUserId());
   if (role !== "admin") {
     return (
-      <div className="mt-24 text-center text-ink-muted">
-        Seuls les administrateurs peuvent lancer un Moovie.
-      </div>
+      <EmptyState
+        icon={ShieldAlert}
+        color="red"
+        title="Réservé aux administrateurs"
+        description="Seuls les administrateurs du club peuvent lancer un nouveau Moovie."
+      />
     );
   }
 
   return (
     <div className="space-y-6">
-      <Link href="/accueil" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
-        <BackIcon className="h-5 w-5" /> Accueil
+      <Link
+        href="/accueil"
+        className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-elevated py-1.5 pl-2 pr-3.5 text-sm font-semibold text-ink-muted transition-colors hover:text-ink active:scale-95"
+      >
+        <ChevronLeft className="h-4 w-4" strokeWidth={2.5} /> Accueil
       </Link>
 
       <header className="animate-fade-up">
-        <Eyebrow>Nouveau cycle</Eyebrow>
-        <h1 className="mt-2 font-display text-[1.9rem] leading-tight tracking-tight">
+        <Eyebrow tone="accent">Nouveau cycle</Eyebrow>
+        <h1 className="mt-2 font-display text-[2rem] text-ink">
           Lancer un Moovie
         </h1>
-        <p className="mt-2 text-sm text-ink-muted">
+        <p className="mt-2 text-[15px] text-ink-muted">
           Une thématique, une période, et le vote s'ouvre.
         </p>
       </header>
@@ -42,10 +49,17 @@ export default async function NouveauMooviePage() {
           <Input name="name" placeholder="Voyage dans le temps" required />
         </Field>
         <Field label="Thématique">
-          <Input name="theme" placeholder="Films de voyage dans le temps" required />
+          <Input
+            name="theme"
+            placeholder="Films de voyage dans le temps"
+            required
+          />
         </Field>
         <Field label="Description">
-          <Textarea name="description" placeholder="Quelques mots pour donner le ton…" />
+          <Textarea
+            name="description"
+            placeholder="Quelques mots pour donner le ton…"
+          />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Début">
@@ -58,9 +72,9 @@ export default async function NouveauMooviePage() {
         <Field label="Clôture du vote">
           <Input type="date" name="voteDeadline" required />
         </Field>
-        <Button type="submit" size="lg">
+        <SubmitButton size="lg" pendingText="Lancement…">
           Lancer le cycle
-        </Button>
+        </SubmitButton>
       </form>
     </div>
   );

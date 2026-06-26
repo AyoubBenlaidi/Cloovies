@@ -1,10 +1,23 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Clapperboard,
+  HelpCircle,
+  Lock,
+  NotebookPen,
+  Plus,
+  Quote,
+  Trash2,
+} from "lucide-react";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Field";
-import { LockIcon, PlusIcon } from "@/components/nav/icons";
+import { Eyebrow } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { toast } from "@/components/ui/Toast";
+import { EASE } from "@/components/motion";
 import { cn } from "@/lib/utils/cn";
 import { formatDate } from "@/lib/utils/format";
 import {
@@ -25,6 +38,13 @@ type FilmLite = { id: string; title: string };
 
 const KINDS: JournalKind[] = ["citation", "scene", "reflexion", "question"];
 const EMOTIONS = Object.keys(EMOTION_META) as EmotionKind[];
+
+const KIND_ICON: Record<JournalKind, typeof Quote> = {
+  citation: Quote,
+  scene: Clapperboard,
+  reflexion: NotebookPen,
+  question: HelpCircle,
+};
 
 export function ReflexionsClient({
   moovieId,
@@ -55,14 +75,10 @@ export function ReflexionsClient({
 
   return (
     <div className="space-y-6">
-      <header className="animate-fade-up">
-        <span className="text-[11px] uppercase tracking-[0.22em] text-ink-faint">
-          Votre carnet · privé
-        </span>
-        <h1 className="mt-2 font-display text-[1.9rem] leading-tight tracking-tight">
-          Réflexions
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+      <header className="animate-fade-up pt-2">
+        <Eyebrow tone="accent">Votre carnet · privé</Eyebrow>
+        <h1 className="mt-2 font-display text-[2rem] text-ink">Réflexions</h1>
+        <p className="mt-2.5 text-[15px] leading-relaxed text-ink-muted">
           Capturez vos pensées pendant le visionnage. Vos émotions resteront
           scellées jusqu'au soir de la réunion.
         </p>
@@ -70,16 +86,16 @@ export function ReflexionsClient({
 
       {/* Sélecteur de film */}
       {films.length > 1 ? (
-        <div className="flex gap-2">
+        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
           {films.map((f) => (
             <button
               key={f.id}
               onClick={() => setFilmId(f.id)}
               className={cn(
-                "truncate rounded-full border px-4 py-2 text-sm transition-colors duration-200",
+                "shrink-0 truncate rounded-pill border px-4 py-2 text-sm font-semibold transition-colors duration-200",
                 f.id === filmId
-                  ? "border-gold/60 bg-gold/10 text-gold"
-                  : "border-border text-ink-muted hover:text-ink"
+                  ? "border-accent bg-accent text-accent-ink"
+                  : "border-border bg-elevated text-ink-muted hover:text-ink"
               )}
             >
               {f.title}
@@ -90,54 +106,66 @@ export function ReflexionsClient({
 
       {/* Émotion scellée */}
       <section>
-        {myEmotion ? (
-          <div
-            className="rounded-[var(--radius-card)] border p-5"
-            style={{
-              borderColor: `${EMOTION_META[myEmotion.kind].color}40`,
-              backgroundImage: `linear-gradient(180deg, ${EMOTION_META[myEmotion.kind].color}12, transparent)`,
-            }}
-          >
-            <div className="flex items-center justify-between">
-              <span
-                className="font-display text-xl"
-                style={{ color: EMOTION_META[myEmotion.kind].color }}
-              >
-                {EMOTION_META[myEmotion.kind].label}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[11px] text-ink-faint">
-                <LockIcon className="h-3.5 w-3.5" /> Scellée
-              </span>
-            </div>
-            <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-              {myEmotion.justification}
-            </p>
-            <button
-              onClick={() => setEmoOpen(true)}
-              className="mt-3 text-xs text-ink-faint underline-offset-4 hover:text-ink-muted hover:underline"
+        <AnimatePresence mode="wait">
+          {myEmotion ? (
+            <motion.div
+              key="sealed"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="relative overflow-hidden rounded-[var(--radius-card)] border p-5"
+              style={{
+                borderColor: `${EMOTION_META[myEmotion.kind].color}40`,
+                backgroundImage: `linear-gradient(160deg, ${EMOTION_META[myEmotion.kind].color}14, transparent 70%)`,
+              }}
             >
-              Modifier
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setEmoOpen(true)}
-            className="flex w-full items-center justify-between rounded-[var(--radius-card)] border border-dashed border-border p-5 text-left transition-colors hover:border-gold/40"
-          >
-            <span>
-              <span className="block font-display text-lg text-ink">
-                Quelle émotion ce film a-t-il laissée ?
+              <div className="flex items-center justify-between">
+                <span
+                  className="font-display text-2xl"
+                  style={{ color: EMOTION_META[myEmotion.kind].color }}
+                >
+                  {EMOTION_META[myEmotion.kind].label}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-black/30 px-2.5 py-1 text-[11px] font-semibold text-ink-faint">
+                  <Lock className="h-3 w-3" strokeWidth={2.5} /> Scellée
+                </span>
+              </div>
+              <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">
+                {myEmotion.justification}
+              </p>
+              <button
+                onClick={() => setEmoOpen(true)}
+                className="mt-3 text-xs font-semibold text-ink-faint underline-offset-4 hover:text-ink-muted hover:underline"
+              >
+                Modifier
+              </button>
+            </motion.div>
+          ) : (
+            <motion.button
+              key="add"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={() => setEmoOpen(true)}
+              className="flex w-full items-center justify-between gap-3 rounded-[var(--radius-card)] border border-dashed border-border-strong p-5 text-left transition-colors hover:border-accent/50"
+            >
+              <span>
+                <span className="block font-subheading text-lg text-ink">
+                  Quelle émotion ce film a-t-il laissée ?
+                </span>
+                <span className="mt-1 block text-sm text-ink-muted">
+                  Associez une émotion — révélée à tous le jour J.
+                </span>
               </span>
-              <span className="mt-1 block text-sm text-ink-muted">
-                Associez une émotion — révélée à tous le jour J.
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
+                <Plus className="h-5 w-5" strokeWidth={2.5} />
               </span>
-            </span>
-            <PlusIcon className="h-5 w-5 shrink-0 text-gold" />
-          </button>
-        )}
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-faint">
-          <LockIcon className="h-3.5 w-3.5" />
+          <Lock className="h-3.5 w-3.5" strokeWidth={2} />
           {othersCount > 0
             ? `${othersCount} membre${othersCount > 1 ? "s ont" : " a"} déjà partagé. Révélation à la réunion.`
             : "Soyez le premier à sceller une émotion."}
@@ -147,65 +175,81 @@ export function ReflexionsClient({
       {/* Journal */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-[11px] uppercase tracking-[0.22em] text-ink-faint">
-            Journal de visionnage
+          <Eyebrow>Journal de visionnage</Eyebrow>
+          <span className="text-xs font-medium text-ink-faint">
+            {filmEntries.length} note{filmEntries.length > 1 ? "s" : ""}
           </span>
-          <span className="text-xs text-ink-faint">{filmEntries.length} note(s)</span>
         </div>
 
         {filmEntries.length === 0 ? (
-          <p className="rounded-[var(--radius-card)] border border-border bg-card p-5 text-sm text-ink-muted">
-            Une scène marquante, une citation, une question restée sans réponse…
-            Touchez le bouton pour capturer une pensée.
-          </p>
+          <EmptyState
+            icon={NotebookPen}
+            color="pink"
+            title="Le carnet est vierge"
+            description="Une scène marquante, une citation, une question restée sans réponse… Touchez + pour capturer une pensée."
+          />
         ) : (
           <ul className="space-y-3">
-            {filmEntries.map((e, i) => (
-              <li
-                key={e.id}
-                className="animate-fade-up rounded-[var(--radius-card)] border border-border bg-card p-4"
-                style={{ animationDelay: `${i * 40}ms` }}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-[0.18em] text-gold/80">
-                    {JOURNAL_META[e.kind].label}
-                  </span>
-                  <span className="text-[11px] text-ink-faint">
-                    {formatDate(e.createdAt)}
-                  </span>
-                </div>
-                <p
-                  className={cn(
-                    "mt-2 leading-relaxed text-ink",
-                    e.kind === "citation" && "font-display text-lg italic"
-                  )}
-                >
-                  {e.content}
-                </p>
-                <button
-                  onClick={() =>
-                    startTransition(() => deleteNoteAction(e.id))
-                  }
-                  className="mt-2 text-[11px] text-ink-faint underline-offset-4 hover:text-emo-malaise hover:underline"
-                >
-                  Supprimer
-                </button>
-              </li>
-            ))}
+            <AnimatePresence initial={false}>
+              {filmEntries.map((e) => {
+                const Icon = KIND_ICON[e.kind];
+                return (
+                  <motion.li
+                    key={e.id}
+                    layout
+                    initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96, height: 0, marginTop: 0 }}
+                    transition={{ duration: 0.3, ease: EASE }}
+                    className="rounded-[var(--radius-card)] border border-border bg-card p-4 shadow-[var(--shadow-sm)]"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-accent/90">
+                        <Icon className="h-3.5 w-3.5" strokeWidth={2.5} />
+                        {JOURNAL_META[e.kind].label}
+                      </span>
+                      <span className="text-[11px] text-ink-faint">
+                        {formatDate(e.createdAt)}
+                      </span>
+                    </div>
+                    <p
+                      className={cn(
+                        "mt-2 leading-relaxed text-ink",
+                        e.kind === "citation" &&
+                          "font-display text-lg italic leading-snug"
+                      )}
+                    >
+                      {e.content}
+                    </p>
+                    <button
+                      onClick={() =>
+                        startTransition(() => {
+                          deleteNoteAction(e.id);
+                          toast("Note supprimée", { variant: "info" });
+                        })
+                      }
+                      className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-semibold text-ink-faint underline-offset-4 hover:text-red"
+                    >
+                      <Trash2 className="h-3 w-3" strokeWidth={2.5} /> Supprimer
+                    </button>
+                  </motion.li>
+                );
+              })}
+            </AnimatePresence>
           </ul>
         )}
       </section>
 
       {/* FAB */}
-      <button
+      <motion.button
+        whileTap={{ scale: 0.9 }}
         onClick={() => setNoteOpen(true)}
         aria-label="Ajouter une note"
-        className="fixed bottom-28 right-[max(1rem,calc(50%-240px+1rem))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gold text-black shadow-[0_10px_40px_-8px_rgba(200,155,60,0.6)] transition-transform duration-[250ms] [transition-timing-function:var(--ease)] active:scale-90"
+        className="fixed bottom-28 right-[max(1rem,calc(50%-240px+1rem))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-ink shadow-[var(--shadow-pop)]"
       >
-        <PlusIcon className="h-6 w-6" />
-      </button>
+        <Plus className="h-6 w-6" strokeWidth={2.5} />
+      </motion.button>
 
-      {/* Composer de note */}
       <NoteComposer
         open={noteOpen}
         onClose={() => setNoteOpen(false)}
@@ -213,11 +257,11 @@ export function ReflexionsClient({
           startTransition(() => {
             addNoteAction({ moovieId, filmId, kind, content });
             setNoteOpen(false);
+            toast("Pensée ajoutée au carnet", { variant: "success" });
           })
         }
       />
 
-      {/* Picker d'émotion */}
       <EmotionPicker
         open={emoOpen}
         initial={myEmotion}
@@ -226,6 +270,7 @@ export function ReflexionsClient({
           startTransition(() => {
             setEmotionAction({ moovieId, filmId, kind, justification });
             setEmoOpen(false);
+            toast("Émotion scellée jusqu'à la réunion", { variant: "success" });
           })
         }
       />
@@ -248,20 +293,24 @@ function NoteComposer({
   return (
     <Sheet open={open} onClose={onClose} title="Capturer une pensée">
       <div className="mb-4 flex flex-wrap gap-2">
-        {KINDS.map((k) => (
-          <button
-            key={k}
-            onClick={() => setKind(k)}
-            className={cn(
-              "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
-              k === kind
-                ? "border-gold/60 bg-gold/10 text-gold"
-                : "border-border text-ink-muted"
-            )}
-          >
-            {JOURNAL_META[k].label}
-          </button>
-        ))}
+        {KINDS.map((k) => {
+          const Icon = KIND_ICON[k];
+          return (
+            <button
+              key={k}
+              onClick={() => setKind(k)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-pill border px-3.5 py-1.5 text-sm font-semibold transition-colors",
+                k === kind
+                  ? "border-accent bg-accent text-accent-ink"
+                  : "border-border bg-elevated text-ink-muted"
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" strokeWidth={2.5} />
+              {JOURNAL_META[k].label}
+            </button>
+          );
+        })}
       </div>
       <Textarea
         autoFocus
@@ -308,10 +357,10 @@ function EmotionPicker({
             <button
               key={e}
               onClick={() => setKind(e)}
-              className="rounded-2xl border px-2 py-3 text-sm transition-all duration-200"
+              className="rounded-[var(--radius-sm)] border px-2 py-3 text-sm font-semibold transition-all duration-200"
               style={{
                 borderColor: active ? meta.color : "var(--color-border)",
-                backgroundColor: active ? `${meta.color}1a` : "transparent",
+                backgroundColor: active ? `${meta.color}1f` : "transparent",
                 color: active ? meta.color : "var(--color-ink-muted)",
               }}
             >
@@ -331,6 +380,7 @@ function EmotionPicker({
         disabled={!text.trim()}
         onClick={() => onSubmit(kind, text.trim())}
       >
+        <Lock className="h-[18px] w-[18px]" strokeWidth={2.5} />
         Sceller jusqu'à la réunion
       </Button>
     </Sheet>

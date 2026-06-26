@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { ArrowRight, CalendarClock, Clapperboard, Sparkles, TrendingUp } from "lucide-react";
 import { Countdown } from "@/components/Countdown";
 import { Poster } from "@/components/film/Poster";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card, Eyebrow } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Avatar } from "@/components/ui/Avatar";
+import { InviteCode } from "@/components/community/InviteCode";
 import {
   getActiveCommunity,
   getCurrentMoovie,
@@ -22,30 +25,25 @@ export default async function AccueilPage() {
   if (!moovie) {
     const role = await getMyRole(community.id, userId);
     return (
-      <div className="mt-20 flex flex-col items-center text-center animate-fade-up">
-        <Eyebrow>{community.name}</Eyebrow>
-        <h1 className="mt-3 font-display text-[2rem] leading-tight tracking-tight">
-          Le club est prêt.
-        </h1>
-        <p className="mt-3 max-w-[18rem] text-sm leading-relaxed text-ink-muted">
-          {role === "admin"
-            ? "Lancez le premier Moovie : une thématique, une sélection de films, un vote."
-            : "Aucun cycle en cours. En attente du lancement par un administrateur."}
-        </p>
-
-        {role === "admin" ? (
-          <div className="mt-7 w-full max-w-[16rem]">
-            <ButtonLink href="/moovies/nouveau" size="lg">
-              Lancer le premier Moovie
-            </ButtonLink>
-          </div>
-        ) : null}
-
-        <div className="mt-8 rounded-[var(--radius-card)] border border-border bg-card px-6 py-4">
-          <Eyebrow>Inviter au club</Eyebrow>
-          <p className="mt-1 font-display text-xl tracking-[0.15em] text-gold">
-            {community.inviteCode}
-          </p>
+      <div className="mt-6 animate-fade-up">
+        <EmptyState
+          icon={Sparkles}
+          title="Le club est prêt."
+          description={
+            role === "admin"
+              ? "Lancez le premier Moovie : une thématique, une sélection de films, un vote."
+              : "Aucun cycle en cours. En attente du lancement par un administrateur."
+          }
+          action={
+            role === "admin" ? (
+              <ButtonLink href="/moovies/nouveau" size="lg">
+                Lancer le premier Moovie
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+        <div className="mt-2">
+          <InviteCode code={community.inviteCode} />
         </div>
       </div>
     );
@@ -59,7 +57,6 @@ export default async function AccueilPage() {
   const leader = films[0];
   const totalVotes = films.reduce((s, f) => s + f.voteCount, 0);
 
-  // Progression du cycle (0 → 100%).
   const start = new Date(moovie.startDate).getTime();
   const end = new Date(moovie.endDate).getTime();
   const progress = Math.min(
@@ -71,20 +68,21 @@ export default async function AccueilPage() {
     moovie.status === "voting"
       ? "Le vote ferme dans"
       : moovie.status === "meeting"
-        ? "La réunion commence"
-        : "Projection en cours";
+        ? "La réunion commence dans"
+        : "Projection en cours · clôture dans";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-7">
       {/* En-tête thématique */}
-      <section className="animate-fade-up">
-        <Eyebrow>
-          Moovie #{moovie.number} · {members.length} membres
+      <section className="animate-fade-up pt-2">
+        <Eyebrow tone="accent">
+          Moovie #{moovie.number} · {members.length} membre
+          {members.length > 1 ? "s" : ""}
         </Eyebrow>
-        <h1 className="mt-2 font-display text-[2rem] leading-tight tracking-tight">
+        <h1 className="mt-2.5 font-display text-[2.3rem] text-ink text-balance">
           {moovie.theme}
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+        <p className="mt-3 text-[15px] leading-relaxed text-ink-muted">
           {moovie.description}
         </p>
       </section>
@@ -93,7 +91,7 @@ export default async function AccueilPage() {
       {leader ? (
         <Link
           href={`/films/${leader.id}`}
-          className="group relative block animate-fade-up overflow-hidden rounded-[var(--radius-lg)] border border-border"
+          className="group relative block animate-fade-up overflow-hidden rounded-[var(--radius-lg)] border border-border shadow-[var(--shadow-lg)] active:scale-[0.99] transition-transform duration-[250ms]"
           style={{ animationDelay: "60ms" }}
         >
           <Poster
@@ -101,14 +99,15 @@ export default async function AccueilPage() {
             year={leader.year}
             posterUrl={leader.posterUrl}
             priority
-            className="aspect-[3/4] rounded-none border-0"
+            className="aspect-[3/4] rounded-none border-0 shadow-none"
             sizes="(max-width: 480px) 100vw, 480px"
           />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-5 pt-16">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-gold">
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-5 pt-20">
+            <span className="inline-flex items-center gap-1.5 rounded-pill bg-accent px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-accent-ink">
+              <TrendingUp className="h-3.5 w-3.5" strokeWidth={2.5} />
               En tête du classement
             </span>
-            <h2 className="mt-3 font-display text-2xl tracking-tight">
+            <h2 className="mt-3 font-heading text-[26px] text-ink">
               {leader.title}
             </h2>
             {leader.tagline ? (
@@ -116,7 +115,7 @@ export default async function AccueilPage() {
                 {leader.tagline}
               </p>
             ) : null}
-            <p className="mt-3 text-xs text-ink-faint">
+            <p className="mt-3 text-xs font-medium text-ink-faint">
               {leader.voteCount} vote{leader.voteCount > 1 ? "s" : ""} ·{" "}
               {totalVotes} au total
             </p>
@@ -124,12 +123,26 @@ export default async function AccueilPage() {
         </Link>
       ) : null}
 
+      {/* CTA films */}
+      <ButtonLink
+        href="/films"
+        variant="secondary"
+        size="lg"
+        className="animate-fade-up"
+      >
+        <Clapperboard className="h-[18px] w-[18px]" strokeWidth={2} />
+        Découvrir la sélection
+        <ArrowRight className="h-[18px] w-[18px]" strokeWidth={2} />
+      </ButtonLink>
+
       {/* Compte à rebours */}
       <Card className="animate-fade-up">
         <Eyebrow>{phaseLabel}</Eyebrow>
         <div className="mt-4">
           <Countdown
-            target={moovie.status === "voting" ? moovie.voteDeadline : moovie.endDate}
+            target={
+              moovie.status === "voting" ? moovie.voteDeadline : moovie.endDate
+            }
           />
         </div>
       </Card>
@@ -137,57 +150,72 @@ export default async function AccueilPage() {
       {/* Réunion + progression */}
       <div className="grid grid-cols-2 gap-3">
         <Card>
-          <Eyebrow>Prochaine réunion</Eyebrow>
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue/15 text-blue">
+            <CalendarClock className="h-[18px] w-[18px]" strokeWidth={2} />
+          </span>
+          <Eyebrow className="mt-3 block">Prochaine réunion</Eyebrow>
           {moovie.meetingDate ? (
-            <p className="mt-3 font-display text-base leading-snug text-ink">
+            <p className="mt-2 font-subheading text-[15px] leading-snug text-ink">
               {formatMeeting(moovie.meetingDate)}
             </p>
           ) : (
             <Link
               href="/reunion"
-              className="mt-3 block text-sm leading-snug text-gold underline-offset-4 hover:underline"
+              className="mt-2 block text-sm font-medium leading-snug text-accent underline-offset-4 hover:underline"
             >
-              À fixer — votez pour un créneau →
+              À fixer — votez un créneau →
             </Link>
           )}
         </Card>
 
         <Card>
-          <Eyebrow>Progression</Eyebrow>
-          <p className="mt-3 font-display text-2xl text-ink">{progress}%</p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-green/15 text-green">
+            <TrendingUp className="h-[18px] w-[18px]" strokeWidth={2} />
+          </span>
+          <Eyebrow className="mt-3 block">Progression</Eyebrow>
+          <p className="mt-2 font-display text-3xl text-ink">{progress}%</p>
+          <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-surface">
             <div
-              className="h-full rounded-full bg-gold transition-all"
+              className="h-full rounded-full bg-accent transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="mt-2 text-[11px] text-ink-faint">
+          <p className="mt-2 text-[11px] font-medium text-ink-faint">
             {formatDay(moovie.startDate)} → {formatDay(moovie.endDate)}
           </p>
         </Card>
       </div>
 
       {/* Membres */}
-      <Link href="/profil/membres" className="flex items-center justify-between">
-        <div className="flex -space-x-2">
-          {members.slice(0, 6).map((m) => (
-            <Avatar
-              key={m.profile.id}
-              pseudo={m.profile.pseudo}
-              photoUrl={m.profile.photoUrl}
-              size="sm"
-              className="ring-2 ring-bg"
-            />
-          ))}
+      <Link
+        href="/profil/membres"
+        className="flex items-center justify-between rounded-[var(--radius-card)] border border-border bg-card p-4 transition-colors hover:border-border-strong active:scale-[0.99]"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex -space-x-2.5">
+            {members.slice(0, 5).map((m) => (
+              <Avatar
+                key={m.profile.id}
+                pseudo={m.profile.pseudo}
+                photoUrl={m.profile.photoUrl}
+                size="sm"
+                className="ring-2 ring-card"
+              />
+            ))}
+          </div>
+          <span className="text-sm font-medium text-ink-muted">
+            {members.length} au club
+          </span>
         </div>
-        <span className="text-sm text-ink-muted">Voir les membres →</span>
+        <ArrowRight className="h-[18px] w-[18px] text-ink-faint" strokeWidth={2} />
       </Link>
 
       {role === "admin" ? (
         <Link
           href="/moovies/nouveau"
-          className="block rounded-[var(--radius-card)] border border-dashed border-border p-4 text-center text-sm text-ink-muted transition-colors hover:border-gold/40 hover:text-gold"
+          className="flex items-center justify-center gap-2 rounded-[var(--radius-card)] border border-dashed border-border-strong p-4 text-center text-sm font-semibold text-ink-muted transition-colors hover:border-accent/50 hover:text-accent"
         >
+          <Sparkles className="h-4 w-4" strokeWidth={2} />
           Lancer un nouveau Moovie
         </Link>
       ) : null}

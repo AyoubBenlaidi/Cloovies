@@ -1,43 +1,36 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import "@fontsource-variable/figtree";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair",
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "Cloovies — Le club",
+  title: {
+    default: "Club Cinoche",
+    template: "%s · Club Cinoche",
+  },
   description:
-    "Cloovies n'est pas une application de gestion de films. C'est un rituel social autour du cinéma.",
-  icons: {
-    icon: "/favicon.svg",
+    "Club Cinoche n'est pas un catalogue de films. C'est un club privé : un rituel mensuel autour du cinéma, des votes, des émotions et des débats de fin de soirée.",
+  applicationName: "Club Cinoche",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Cinoche",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#0a0a0c",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={`${inter.variable} ${playfair.variable}`}>
+    <html lang="fr">
       <body>{children}</body>
     </html>
   );

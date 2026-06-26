@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Search } from "lucide-react";
 import { Poster } from "@/components/film/Poster";
 import { Input } from "@/components/ui/Field";
+import { Spinner } from "@/components/ui/Spinner";
 import { cn } from "@/lib/utils/cn";
 import {
   addFilmFromTmdbAction,
@@ -50,13 +52,17 @@ export function TmdbImport({ moovieId }: { moovieId: string }) {
         <button
           type="submit"
           disabled={loading || !query.trim()}
-          className="shrink-0 rounded-2xl bg-gold px-5 text-sm font-medium text-black transition-opacity disabled:opacity-40"
+          className="flex shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-sm)] bg-accent px-5 text-sm font-bold text-accent-ink shadow-[var(--shadow-pop)] transition-opacity disabled:opacity-40"
         >
-          {loading ? "…" : "Rechercher"}
+          {loading ? (
+            <Spinner className="text-accent-ink" />
+          ) : (
+            <Search className="h-4 w-4" strokeWidth={2.5} />
+          )}
         </button>
       </form>
 
-      {error ? <p className="mt-3 text-sm text-emo-malaise">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-red">{error}</p> : null}
 
       {results && results.length === 0 && !error ? (
         <p className="mt-4 text-sm text-ink-muted">
@@ -74,7 +80,7 @@ export function TmdbImport({ moovieId }: { moovieId: string }) {
                   onClick={() => add(r.tmdbId)}
                   disabled={addingId !== null}
                   className={cn(
-                    "group block w-full text-left transition-opacity",
+                    "group block w-full text-left transition-opacity active:scale-[0.97]",
                     addingId !== null && !isAdding && "opacity-40"
                   )}
                 >
@@ -84,15 +90,15 @@ export function TmdbImport({ moovieId }: { moovieId: string }) {
                       year={r.year}
                       posterUrl={r.posterUrl}
                       sizes="33vw"
-                      className="transition-all duration-[250ms] [transition-timing-function:var(--ease)] group-hover:ring-2 group-hover:ring-gold/60"
+                      className="transition-all duration-[250ms] group-hover:ring-2 group-hover:ring-accent/60"
                     />
                     {isAdding ? (
-                      <span className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-card)] bg-black/70 text-xs text-gold">
-                        Ajout…
+                      <span className="absolute inset-0 flex items-center justify-center gap-1.5 rounded-[var(--radius-card)] bg-black/70 text-xs font-semibold text-accent">
+                        <Spinner className="text-accent" /> Ajout…
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-1.5 truncate text-xs text-ink-muted">
+                  <p className="mt-1.5 truncate text-xs font-semibold text-ink-muted">
                     {r.title}
                   </p>
                   {r.year ? (

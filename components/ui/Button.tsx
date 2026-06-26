@@ -1,23 +1,32 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 
-type Variant = "primary" | "ghost" | "outline";
-type Size = "sm" | "md" | "lg";
+type Variant = "primary" | "secondary" | "ghost" | "outline" | "danger";
+type Size = "sm" | "md" | "lg" | "icon";
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-medium rounded-full transition-all duration-[250ms] [transition-timing-function:var(--ease)] active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none select-none";
+  "relative inline-flex items-center justify-center gap-2 font-bold rounded-pill select-none " +
+  "transition-[transform,background-color,border-color,color,box-shadow] duration-[250ms] " +
+  "[transition-timing-function:var(--ease)] active:scale-[0.97] " +
+  "disabled:opacity-40 disabled:pointer-events-none " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-gold text-black hover:bg-gold-soft shadow-[0_6px_24px_-8px_rgba(200,155,60,0.5)]",
+    "bg-accent text-accent-ink hover:bg-accent-soft shadow-[var(--shadow-pop)]",
+  secondary:
+    "bg-elevated text-ink border border-border hover:bg-card-hover hover:border-border-strong",
   ghost: "text-ink-muted hover:text-ink hover:bg-elevated",
-  outline: "border border-border text-ink hover:border-gold/50 hover:text-gold",
+  outline:
+    "border border-border-strong text-ink hover:border-accent hover:text-accent",
+  danger: "bg-red text-white hover:brightness-110 shadow-[var(--shadow-md)]",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-4 text-sm",
-  md: "h-11 px-6 text-sm",
+  sm: "h-9 px-4 text-[13px]",
+  md: "h-11 px-5 text-sm",
   lg: "h-14 px-8 text-base w-full",
+  icon: "h-11 w-11",
 };
 
 type CommonProps = {
@@ -47,11 +56,16 @@ export function ButtonLink({
   className,
   href,
   children,
-}: CommonProps & { href: string }) {
+  ...rest
+}: CommonProps & { href: string } & Omit<
+    React.ComponentProps<typeof Link>,
+    "href" | "className" | "children"
+  >) {
   return (
     <Link
       href={href}
       className={cn(base, variants[variant], sizes[size], className)}
+      {...rest}
     >
       {children}
     </Link>

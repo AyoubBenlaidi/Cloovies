@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Field, Input } from "@/components/ui/Field";
 import { signUpAction } from "@/app/(auth)/actions";
 
@@ -11,15 +11,15 @@ export default async function SignupPage({
   const { error } = await searchParams;
   return (
     <div className="animate-fade-up">
-      <h1 className="font-display text-3xl tracking-tight">
+      <h1 className="font-display text-[2.4rem] leading-[0.95] text-ink text-balance">
         Rejoignez le cercle.
       </h1>
-      <p className="mt-2 text-sm text-ink-muted">
+      <p className="mt-2.5 text-[15px] text-ink-muted">
         Quelques mots sur vous, et la séance peut commencer.
       </p>
 
       {error ? (
-        <p className="mt-4 rounded-xl border border-emo-malaise/30 bg-emo-malaise/5 px-4 py-3 text-sm text-emo-malaise">
+        <p className="mt-5 rounded-[var(--radius-sm)] border border-red/30 bg-red/5 px-4 py-3 text-sm text-red">
           {error}
         </p>
       ) : null}
@@ -29,19 +29,32 @@ export default async function SignupPage({
           <Input name="pseudo" placeholder="Votre nom de cinéphile" required />
         </Field>
         <Field label="Email">
-          <Input type="email" name="email" placeholder="vous@exemple.com" required />
+          <Input
+            type="email"
+            name="email"
+            placeholder="vous@exemple.com"
+            required
+          />
         </Field>
         <Field label="Mot de passe">
-          <Input type="password" name="password" placeholder="••••••••" required />
+          <Input
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            required
+          />
         </Field>
-        <Button type="submit" size="lg" className="mt-2">
+        <SubmitButton size="lg" className="mt-2" pendingText="Création…">
           Créer mon compte
-        </Button>
+        </SubmitButton>
       </form>
 
       <p className="mt-6 text-center text-sm text-ink-faint">
         Déjà membre ?{" "}
-        <Link href="/login" className="text-gold underline-offset-4 hover:underline">
+        <Link
+          href="/login"
+          className="font-semibold text-accent underline-offset-4 hover:underline"
+        >
           Se connecter
         </Link>
       </p>

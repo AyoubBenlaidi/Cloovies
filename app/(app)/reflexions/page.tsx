@@ -1,4 +1,6 @@
+import { NotebookPen } from "lucide-react";
 import { ReflexionsClient } from "@/components/reflexion/ReflexionsClient";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   getActiveCommunity,
   getCurrentMoovie,
@@ -13,7 +15,14 @@ export default async function ReflexionsPage() {
   const community = await getActiveCommunity();
   const moovie = await getCurrentMoovie(community.id);
   if (!moovie) {
-    return <div className="mt-24 text-center text-ink-muted">Aucun cycle en cours.</div>;
+    return (
+      <EmptyState
+        icon={NotebookPen}
+        color="pink"
+        title="Le carnet attend"
+        description="Vos réflexions et émotions s'ouvriront dès qu'un Moovie sera lancé."
+      />
+    );
   }
 
   const userId = await getCurrentUserId();
