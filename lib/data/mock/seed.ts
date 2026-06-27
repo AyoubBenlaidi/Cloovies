@@ -30,20 +30,34 @@ export const profiles: Profile[] = [
   { id: "u-6", pseudo: "Théo", photoUrl: null, favoriteFilm: "Le Voyage de Chihiro", favoriteDirector: "Hayao Miyazaki", favoriteQuote: null },
 ];
 
-export const community: Community = {
-  id: "c-1",
-  name: "Le Cercle",
-  inviteCode: "CINE-7421",
-  createdBy: "u-1",
-};
+// L'utilisateur courant (u-1) appartient à DEUX clubs — pour démontrer
+// le multi-club et le cloisonnement de l'affichage.
+export const communities: Community[] = [
+  { id: "c-1", name: "Le Cercle", inviteCode: "CINE-7421", createdBy: "u-1" },
+  {
+    id: "c-2",
+    name: "Ciné Club du Dimanche",
+    inviteCode: "CINE-2090",
+    createdBy: "u-2",
+  },
+];
+
+/** @deprecated conservé pour compat — préférez `communities`. */
+export const community: Community = communities[0];
 
 export const members: Array<{ communityId: string; userId: string; role: "admin" | "member" }> = [
+  // Club 1 — Le Cercle (u-1 est admin)
   { communityId: "c-1", userId: "u-1", role: "admin" },
   { communityId: "c-1", userId: "u-2", role: "member" },
   { communityId: "c-1", userId: "u-3", role: "member" },
   { communityId: "c-1", userId: "u-4", role: "member" },
   { communityId: "c-1", userId: "u-5", role: "member" },
   { communityId: "c-1", userId: "u-6", role: "member" },
+  // Club 2 — Ciné Club du Dimanche (u-1 y est simple membre)
+  { communityId: "c-2", userId: "u-2", role: "admin" },
+  { communityId: "c-2", userId: "u-1", role: "member" },
+  { communityId: "c-2", userId: "u-4", role: "member" },
+  { communityId: "c-2", userId: "u-5", role: "member" },
 ];
 
 // Dates calées autour de "maintenant" pour un rendu vivant.
@@ -103,6 +117,22 @@ export const moovies: Moovie[] = [
     status: "archived",
     maxVotes: 2,
   },
+  // --- Moovie du Club 2 (Ciné Club du Dimanche) ---
+  {
+    id: "m-22",
+    communityId: "c-2",
+    number: 5,
+    name: "Le monde de Miyazaki",
+    theme: "Studio Ghibli",
+    description:
+      "Forêts qui respirent, machines qui rêvent. Le vote du dimanche pour la prochaine séance Ghibli.",
+    startDate: inDays(-5),
+    endDate: inDays(10),
+    meetingDate: null,
+    voteDeadline: inDays(4),
+    status: "voting",
+    maxVotes: 2,
+  },
 ];
 
 export const films: Film[] = [
@@ -158,6 +188,25 @@ export const films: Film[] = [
     id: "f-32", moovieId: "m-10", title: "Pi", tagline: "", description: "Un mathématicien au bord de la folie cherche le code du monde.",
     posterUrl: null, trailerUrl: null, isSelected: true, year: 1998, runtime: 84, director: "Darren Aronofsky", genres: ["Thriller", "Science-fiction"], tmdbRating: 7.0,
   },
+  // --- Films candidats du Club 2 (moovie m-22) ---
+  {
+    id: "g-1", moovieId: "m-22", title: "Le Voyage de Chihiro", tagline: "De l'autre côté du tunnel, un autre monde.",
+    description: "Une fillette s'égare dans un monde d'esprits où ses parents sont changés en cochons. Elle devra travailler aux bains pour les sauver.",
+    posterUrl: null, trailerUrl: "https://www.youtube.com/watch?v=ByXuk9QqQkk",
+    isSelected: false, year: 2001, runtime: 125, director: "Hayao Miyazaki", genres: ["Animation", "Fantastique"], tmdbRating: 8.5,
+  },
+  {
+    id: "g-2", moovieId: "m-22", title: "Princesse Mononoké", tagline: "La forêt contre les hommes.",
+    description: "Un jeune prince maudit se retrouve au cœur d'une guerre entre les dieux de la forêt et les humains qui l'exploitent.",
+    posterUrl: null, trailerUrl: "https://www.youtube.com/watch?v=4OiMOHRDs14",
+    isSelected: false, year: 1997, runtime: 134, director: "Hayao Miyazaki", genres: ["Animation", "Aventure"], tmdbRating: 8.3,
+  },
+  {
+    id: "g-3", moovieId: "m-22", title: "Mon voisin Totoro", tagline: "Le gardien de la forêt veille.",
+    description: "Deux sœurs emménagent à la campagne et se lient d'amitié avec les esprits bienveillants de la forêt voisine.",
+    posterUrl: null, trailerUrl: "https://www.youtube.com/watch?v=92a7Hj0ijLs",
+    isSelected: false, year: 1988, runtime: 86, director: "Hayao Miyazaki", genres: ["Animation", "Famille"], tmdbRating: 8.1,
+  },
 ];
 
 // Votes du Moovie en cours (f-2 et f-3 en tête).
@@ -173,6 +222,12 @@ export const votes: Vote[] = [
   { id: "v-9", moovieId: "m-12", filmId: "f-2", userId: "u-5" },
   { id: "v-10", moovieId: "m-12", filmId: "f-1", userId: "u-5" },
   { id: "v-11", moovieId: "m-12", filmId: "f-3", userId: "u-6" },
+  // Votes du Club 2 (moovie m-22) — g-1 en tête
+  { id: "v-21", moovieId: "m-22", filmId: "g-1", userId: "u-1" },
+  { id: "v-22", moovieId: "m-22", filmId: "g-2", userId: "u-2" },
+  { id: "v-23", moovieId: "m-22", filmId: "g-1", userId: "u-2" },
+  { id: "v-24", moovieId: "m-22", filmId: "g-1", userId: "u-4" },
+  { id: "v-25", moovieId: "m-22", filmId: "g-3", userId: "u-5" },
 ];
 
 export const journalEntries: JournalEntry[] = [

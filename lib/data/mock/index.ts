@@ -1,7 +1,10 @@
+import { redirect } from "next/navigation";
 import * as seed from "./seed";
+import { readActiveCommunityId } from "@/lib/community/cookie";
 import type {
   Availability,
   Community,
+  CommunitySummary,
   Emotion,
   EmotionKind,
   EmotionRevealed,
@@ -22,7 +25,7 @@ import type {
    En production, c'est une démo : l'état se réinitialise au cold start. */
 const db = {
   profiles: structuredClone(seed.profiles),
-  community: structuredClone(seed.community),
+  communities: structuredClone(seed.communities),
   members: structuredClone(seed.members),
   moovies: structuredClone(seed.moovies),
   films: structuredClone(seed.films),
@@ -58,8 +61,24 @@ export async function updateProfile(
 }
 
 /* -------- Communauté -------- */
+/** Clubs dont l'utilisateur courant est membre (avec son rôle). */
+export async function getMyCommunities(): Promise<CommunitySummary[]> {
+  return db.members
+    .filter((m) => m.userId === CURRENT_USER_ID)
+    .map((m) => {
+      const c = db.communities.find((x) => x.id === m.communityId);
+      return c ? { ...c, role: m.role } : null;
+    })
+    .filter((c): c is CommunitySummary => !!c);
+}
+
 export async function getActiveCommunity(): Promise<Community> {
-  return db.community;
+  const mine = await getMyCommunities();
+  if (mine.length === 0) redirect("/start");
+  const wanted = await readActiveCommunityId();
+  // On ne renvoie le club du cookie que si l'utilisateur en est bien membre.
+  const active = (wanted && mine.find((c) => c.id === wanted)) || mine[0];
+  return { id: active.id, name: active.name, inviteCode: active.inviteCode, createdBy: active.createdBy };
 }
 
 export async function getMembers(communityId: string): Promise<Member[]> {
@@ -79,30 +98,33 @@ export async function getMyRole(
 }
 
 export async function joinByCode(code: string): Promise<Community | null> {
-  return code.trim().toUpperCase() === db.community.inviteCode
-    ? db.community
-    : null;
+  const wanted = code.trim().toUpperCase();
+  const c = db.communities.find((x) => x.inviteCode === wanted);
+  if (!c) return null;
+  // Adhésion (membre) si pas déjà membre — un user peut rejoindre plusieurs clubs.
+  if (!db.members.some((m) => m.communityId === c.id && m.userId === CURRENT_USER_ID)) {
+    db.members.push({ communityId: c.id, userId: CURRENT_USER_ID, role: "member" });
+  }
+  return c;
 }
 
 export async function createCommunity(
   name: string,
   inviteCode: string
 ): Promise<Community> {
-  // Mode démo : on conserve une communauté unique mais on couvre l'API.
-  db.community = {
-    ...db.community,
+  const community: Community = {
+    id: uid("c"),
     name,
     inviteCode: inviteCode.trim().toUpperCase(),
     createdBy: CURRENT_USER_ID,
   };
-  if (!db.members.some((m) => m.userId === CURRENT_USER_ID)) {
-    db.members.push({
-      communityId: db.community.id,
-      userId: CURRENT_USER_ID,
-      role: "admin",
-    });
-  }
-  return db.community;
+  db.communities.push(community);
+  db.members.push({
+    communityId: community.id,
+    userId: CURRENT_USER_ID,
+    role: "admin",
+  });
+  return community;
 }
 
 /* -------- Moovies -------- */

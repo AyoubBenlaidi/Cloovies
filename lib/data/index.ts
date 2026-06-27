@@ -28,6 +28,7 @@ export const updateProfile = impl.updateProfile;
 
 // --- Communauté ---
 export const getActiveCommunity = impl.getActiveCommunity;
+export const getMyCommunities = impl.getMyCommunities;
 export const getMembers = impl.getMembers;
 export const getMyRole = impl.getMyRole;
 export const joinByCode = impl.joinByCode;

@@ -45,6 +45,11 @@ export interface Member {
   role: Role;
 }
 
+/** Club auquel l'utilisateur appartient, avec son rôle (pour le sélecteur de club). */
+export interface CommunitySummary extends Community {
+  role: Role;
+}
+
 export interface Moovie {
   id: string;
   communityId: string;

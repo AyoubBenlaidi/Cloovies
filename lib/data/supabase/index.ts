@@ -11,9 +11,11 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { readActiveCommunityId } from "@/lib/community/cookie";
 import type {
   Availability,
   Community,
+  CommunitySummary,
   Emotion,
   EmotionKind,
   EmotionRevealed,
@@ -154,12 +156,46 @@ export async function updateProfile(
 }
 
 /* ---------- Communauté ---------- */
+/** Clubs dont l'utilisateur courant est membre (avec rôle), du plus ancien au plus récent. */
+export async function getMyCommunities(): Promise<CommunitySummary[]> {
+  const sb = await createClient();
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) redirect("/login");
+  const { data } = await sb
+    .from("community_members")
+    .select("role, joined_at, community:communities(*)")
+    .eq("user_id", auth.user.id)
+    .order("joined_at", { ascending: true });
+  return (data ?? [])
+    .filter((r: Row) => r.community)
+    .map((r: Row) => ({ ...toCommunity(r.community), role: r.role }));
+}
+
 export async function getActiveCommunity(): Promise<Community> {
   const sb = await createClient();
-  // RLS ne renvoie que les communautés dont on est membre.
-  const { data } = await sb.from("communities").select("*").limit(1).maybeSingle();
-  if (!data) redirect("/start"); // onboarding : pas encore de communauté
-  return toCommunity(data);
+  // 1) Club explicitement sélectionné (cookie) — uniquement si on en est membre.
+  //    La RLS sur `communities` (is_member) garantit le cloisonnement.
+  const wanted = await readActiveCommunityId();
+  if (wanted) {
+    const { data } = await sb
+      .from("communities")
+      .select("*")
+      .eq("id", wanted)
+      .maybeSingle();
+    if (data) return toCommunity(data);
+  }
+  // 2) Sinon : MA adhésion la plus récente.
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) redirect("/login");
+  const { data } = await sb
+    .from("community_members")
+    .select("joined_at, community:communities(*)")
+    .eq("user_id", auth.user.id)
+    .order("joined_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!data?.community) redirect("/start"); // onboarding : aucun club
+  return toCommunity(data.community);
 }
 
 export async function getMembers(communityId: string): Promise<Member[]> {
