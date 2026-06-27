@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createMoovie, getActiveCommunity } from "@/lib/data";
+import { assertAdmin } from "@/lib/community/guards";
 
 export async function createMoovieAction(formData: FormData) {
+  await assertAdmin();
   const community = await getActiveCommunity();
   const startDate = String(formData.get("startDate"));
   const endDate = String(formData.get("endDate"));

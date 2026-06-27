@@ -4,21 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   addFilm,
-  getActiveCommunity,
   getCurrentUserId,
-  getMyRole,
   setRating,
   toggleVote,
 } from "@/lib/data";
+import { assertAdmin } from "@/lib/community/guards";
 import { evaluateBadges } from "@/lib/badges/evaluator";
 import { getFilmData, searchMovies, type TmdbResult } from "@/lib/tmdb";
-
-/** Garde-fou : les actions admin échouent si l'appelant n'est pas admin. */
-async function assertAdmin() {
-  const community = await getActiveCommunity();
-  const role = await getMyRole(community.id, await getCurrentUserId());
-  if (role !== "admin") throw new Error("Action réservée aux administrateurs.");
-}
 
 export async function toggleVoteAction(
   moovieId: string,
