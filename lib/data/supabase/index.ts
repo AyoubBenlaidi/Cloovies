@@ -305,6 +305,38 @@ export async function createMoovie(
   return toMoovie(data);
 }
 
+export async function setMoovieStatus(
+  moovieId: string,
+  status: Moovie["status"]
+): Promise<void> {
+  const sb = await createClient();
+  // RLS "moovies admin write" : réservé aux admins du club.
+  await sb.from("moovies").update({ status }).eq("id", moovieId);
+}
+
+/** Fige la sélection : les 2 films les plus votés passent is_selected=true. */
+export async function finalizeSelection(moovieId: string): Promise<void> {
+  const sb = await createClient();
+  const [{ data: films }, { data: votes }] = await Promise.all([
+    sb.from("films").select("id, title").eq("moovie_id", moovieId),
+    sb.from("votes").select("film_id").eq("moovie_id", moovieId),
+  ]);
+  const count = new Map<string, number>();
+  for (const v of votes ?? []) count.set(v.film_id, (count.get(v.film_id) ?? 0) + 1);
+  const top = new Set(
+    (films ?? [])
+      .map((f: Row) => ({ id: f.id, n: count.get(f.id) ?? 0, title: f.title }))
+      .sort((a, b) => b.n - a.n || a.title.localeCompare(b.title))
+      .slice(0, 2)
+      .map((r) => r.id)
+  );
+  // RLS "films admin write" : réservé aux admins.
+  await sb.from("films").update({ is_selected: false }).eq("moovie_id", moovieId);
+  if (top.size) {
+    await sb.from("films").update({ is_selected: true }).in("id", [...top]);
+  }
+}
+
 /* ---------- Films & votes ---------- */
 async function filmsWithVotes(
   moovieId: string,

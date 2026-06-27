@@ -3,6 +3,7 @@ import { ArrowRight, CalendarClock, Clapperboard, Sparkles, TrendingUp } from "l
 import { Countdown } from "@/components/Countdown";
 import { Poster } from "@/components/film/Poster";
 import { ButtonLink } from "@/components/ui/Button";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Card, Eyebrow } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Avatar } from "@/components/ui/Avatar";
@@ -15,7 +16,22 @@ import {
   getMembers,
   getMyRole,
 } from "@/lib/data";
+import { setMooviePhaseAction } from "@/app/(app)/moovies/actions";
+import { cn } from "@/lib/utils/cn";
 import { formatMeeting, formatDay } from "@/lib/utils/format";
+
+const PHASE_STEPS = [
+  { key: "voting", label: "Vote" },
+  { key: "watching", label: "Visionnage" },
+  { key: "meeting", label: "Réunion" },
+  { key: "archived", label: "Archive" },
+] as const;
+
+const NEXT_PHASE: Record<string, { status: string; label: string }> = {
+  voting: { status: "watching", label: "Clôturer le vote" },
+  watching: { status: "meeting", label: "Lancer la réunion" },
+  meeting: { status: "archived", label: "Archiver le cycle" },
+};
 
 export default async function AccueilPage() {
   const community = await getActiveCommunity();
@@ -209,6 +225,55 @@ export default async function AccueilPage() {
         </div>
         <ArrowRight className="h-[18px] w-[18px] text-ink-faint" strokeWidth={2} />
       </Link>
+
+      {role === "admin" ? (
+        <section className="rounded-[var(--radius-card)] border border-border bg-card p-5">
+          <Eyebrow tone="accent">Cycle · admin</Eyebrow>
+          <div className="mt-3 flex items-center gap-1.5">
+            {PHASE_STEPS.map((step, i) => {
+              const stepIndex = PHASE_STEPS.findIndex(
+                (s) => s.key === moovie.status
+              );
+              const active = step.key === moovie.status;
+              const done = i < stepIndex;
+              return (
+                <span
+                  key={step.key}
+                  className={cn(
+                    "flex-1 rounded-pill py-1.5 text-center text-[11px] font-bold",
+                    active
+                      ? "bg-accent text-accent-ink"
+                      : done
+                        ? "bg-accent/15 text-accent"
+                        : "bg-elevated text-ink-faint"
+                  )}
+                >
+                  {step.label}
+                </span>
+              );
+            })}
+          </div>
+          {NEXT_PHASE[moovie.status] ? (
+            <form action={setMooviePhaseAction} className="mt-4">
+              <input type="hidden" name="moovieId" value={moovie.id} />
+              <input
+                type="hidden"
+                name="status"
+                value={NEXT_PHASE[moovie.status].status}
+              />
+              <SubmitButton variant="secondary" size="md" className="w-full">
+                {NEXT_PHASE[moovie.status].label}
+                <ArrowRight className="h-[18px] w-[18px]" strokeWidth={2} />
+              </SubmitButton>
+            </form>
+          ) : null}
+          {moovie.status === "voting" ? (
+            <p className="mt-2.5 text-[11px] leading-relaxed text-ink-faint">
+              Clôturer le vote fige les 2 films en tête comme sélection du cycle.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       {role === "admin" ? (
         <Link

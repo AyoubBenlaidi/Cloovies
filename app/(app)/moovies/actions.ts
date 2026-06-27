@@ -2,8 +2,33 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createMoovie, getActiveCommunity } from "@/lib/data";
+import {
+  createMoovie,
+  finalizeSelection,
+  getActiveCommunity,
+  setMoovieStatus,
+} from "@/lib/data";
 import { assertAdmin } from "@/lib/community/guards";
+import type { MoovieStatus } from "@/lib/data/types";
+
+const PHASES: MoovieStatus[] = ["voting", "watching", "meeting", "archived"];
+
+/** Fait avancer le cycle (admin). En clôturant le vote, fige la sélection. */
+export async function setMooviePhaseAction(formData: FormData) {
+  await assertAdmin();
+  const moovieId = String(formData.get("moovieId") ?? "");
+  const status = String(formData.get("status") ?? "") as MoovieStatus;
+  if (!moovieId || !PHASES.includes(status)) redirect("/accueil");
+
+  // Passage en visionnage = clôture du vote → on fige le top 2.
+  if (status === "watching") await finalizeSelection(moovieId);
+  await setMoovieStatus(moovieId, status);
+
+  revalidatePath("/accueil");
+  revalidatePath("/films");
+  revalidatePath("/reunion");
+  redirect("/accueil");
+}
 
 export async function createMoovieAction(formData: FormData) {
   await assertAdmin();

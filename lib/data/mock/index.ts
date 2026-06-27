@@ -170,6 +170,28 @@ export async function createMoovie(
   return moovie;
 }
 
+export async function setMoovieStatus(
+  moovieId: string,
+  status: Moovie["status"]
+): Promise<void> {
+  const m = db.moovies.find((x) => x.id === moovieId);
+  if (m) m.status = status;
+}
+
+/** Fige la sélection : les 2 films les plus votés deviennent `isSelected`. */
+export async function finalizeSelection(moovieId: string): Promise<void> {
+  const ranked = db.films
+    .filter((f) => f.moovieId === moovieId)
+    .map((f) => ({
+      f,
+      votes: db.votes.filter((v) => v.filmId === f.id).length,
+    }))
+    .sort((a, b) => b.votes - a.votes || a.f.title.localeCompare(b.f.title));
+  ranked.forEach((r, i) => {
+    r.f.isSelected = i < 2;
+  });
+}
+
 /* -------- Films & votes -------- */
 function withVotes(film: Film, userId: string): FilmWithVotes {
   const filmVotes = db.votes.filter((v) => v.filmId === film.id);

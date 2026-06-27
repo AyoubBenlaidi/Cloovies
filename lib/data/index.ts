@@ -39,6 +39,8 @@ export const getCurrentMoovie = impl.getCurrentMoovie;
 export const getMoovie = impl.getMoovie;
 export const getArchivedMoovies = impl.getArchivedMoovies;
 export const createMoovie = impl.createMoovie;
+export const setMoovieStatus = impl.setMoovieStatus;
+export const finalizeSelection = impl.finalizeSelection;
 
 // --- Films & votes ---
 export const getFilms = impl.getFilms;
